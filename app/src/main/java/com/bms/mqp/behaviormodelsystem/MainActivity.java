@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity
 
         switch (viewId) {
             case R.id.nav_apps:
-                fragment = new AccelerometerFragment();
+                fragment = new AppUsageStatisticsFragment();
                 title  = "Apps";
                 break;
             case R.id.nav_location:
@@ -105,6 +105,7 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.id.nav_accelerometer:
                 // fragment = new EventsFragment();
+                fragment = new AccelerometerFragment();
                 title = "Accelerometer";
                 break;
 
