@@ -83,7 +83,9 @@ public class AppUsageStatisticsFragment extends Fragment {
         mUsageStatsManager = (UsageStatsManager) getActivity()
                 .getSystemService(Context.USAGE_STATS_SERVICE); //Context.USAGE_STATS_SERVICE
 
-        mLastTime = System.currentTimeMillis() - USAGE_STATS_PERIOD;
+        // get events form last hour
+        //mLastTime = System.currentTimeMillis() - USAGE_STATS_PERIOD;
+        mLastTime = System.currentTimeMillis() - 1000*60*60;
 
 
     }
@@ -176,11 +178,12 @@ public class AppUsageStatisticsFragment extends Fragment {
                         .getDrawable(R.drawable.ic_default_app_launcher);
             }
             customUsageEventsList.add(customUsageEvents);
-        }
-        Collections.sort(customUsageEventsList, new TimeStampComparator());
-        mUsageListAdapter.setCustomUsageStatsList(customUsageEventsList);
-        mUsageListAdapter.notifyDataSetChanged();
-        mRecyclerView.scrollToPosition(0);
+            }
+            Collections.sort(customUsageEventsList, new TimeStampComparator());
+            mUsageListAdapter.setCustomUsageStatsList(customUsageEventsList);
+            mUsageListAdapter.notifyDataSetChanged();
+            mRecyclerView.scrollToPosition(0);
+
     }
 
     /**
