@@ -8,9 +8,11 @@ import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.*;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -33,11 +35,13 @@ public class WifiFragment extends Fragment implements View.OnClickListener {
     Button buttonScan;
     int size = 0;
     List<ScanResult> results;
+    WifiResultsAdapter adapter;
 
 
     String ITEM_KEY = "key";
     ArrayList<HashMap<String, String>> arraylist = new ArrayList<HashMap<String, String>>();
-    SimpleAdapter adapter;
+    ArrayList<WifiResults> networkList=new ArrayList<WifiResults>();
+
 
 
     public WifiFragment(){
@@ -58,8 +62,8 @@ public class WifiFragment extends Fragment implements View.OnClickListener {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_wifi, container, false);
-        textStatus = (TextView) view.findViewById(R.id.textStatus);
         buttonScan = (Button) view.findViewById(R.id.buttonScan);
+        buttonScan.setText("Rescan Networks");
         buttonScan.setOnClickListener(this);
         lv = (ListView) view.findViewById(R.id.list);
 
@@ -72,16 +76,23 @@ public class WifiFragment extends Fragment implements View.OnClickListener {
             wifi.setWifiEnabled(true);
         }
         // having trouble with this part
-        this.adapter = new SimpleAdapter(getActivity(), arraylist, R.layout.row, new String[] { ITEM_KEY }, new int[] { R.id.textView3 });
-        lv.setAdapter(this.adapter);
+        adapter = new WifiResultsAdapter(getActivity(),networkList);
+        lv.setAdapter(adapter);
+
 
         getActivity().registerReceiver(new BroadcastReceiver()
         {
             @Override
             public void onReceive(Context c, Intent intent)
             {
+                networkList.clear();
                 results = wifi.getScanResults();
                 size = results.size();
+                for(int i =0 ; i<size;i++){
+                    WifiResults temp = new WifiResults(results.get(i).SSID,results.get(i).BSSID,Integer.toString(results.get(i).level));
+                    networkList.add(i,temp);
+                    adapter.notifyDataSetChanged();
+                }
             }
         }, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         return view;
@@ -90,25 +101,28 @@ public class WifiFragment extends Fragment implements View.OnClickListener {
 
     public void onClick(View view)
     {
-        arraylist.clear();
+        //arraylist.clear();
         wifi.startScan();
 
         Toast.makeText(getActivity(), "Scanning...." + size, Toast.LENGTH_SHORT).show();
+       /*
         try
         {
             size = size - 1;
             while (size >= 0)
             {
-                HashMap<String, String> item = new HashMap<String, String>();
-                item.put(ITEM_KEY, results.get(size).SSID + "  " + results.get(size).capabilities);
+                //HashMap<String, String> item = new HashMap<String, String>();
+                //item.put(ITEM_KEY, results.get(size).SSID + "  " + results.get(size).capabilities);
 
-                arraylist.add(item);
+                //arraylist.add(item);
                 size--;
                 adapter.notifyDataSetChanged();
             }
         }
         catch (Exception e)
         { }
+        */
     }
+
 }
 
