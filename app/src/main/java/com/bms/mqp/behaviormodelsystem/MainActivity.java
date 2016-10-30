@@ -108,6 +108,11 @@ public class MainActivity extends AppCompatActivity
                 fragment = new AccelerometerFragment();
                 title = "Accelerometer";
                 break;
+            case R.id.nav_wifi:
+                // fragment = new EventsFragment();
+                fragment = new WifiFragment();
+                title = "WiFi";
+                break;
 
         }
 

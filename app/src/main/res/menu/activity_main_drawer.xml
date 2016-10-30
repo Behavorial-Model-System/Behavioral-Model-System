@@ -18,6 +18,10 @@
             android:id="@+id/nav_accelerometer"
             android:icon="@drawable/ic_menu_manage"
             android:title="Accelerometer" />
+        <item
+            android:id="@+id/nav_wifi"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="WiFi" />
     </group>
 
 </menu>
