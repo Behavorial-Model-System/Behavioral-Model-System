@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Provide views to RecyclerView with the directory entries.
  */
-public class UsageListAdapter extends RecyclerView.Adapter<UsageListAdapter.ViewHolder> {
+public class UsageEventsListAdapter extends RecyclerView.Adapter<UsageEventsListAdapter.ViewHolder> {
 
     private List<CustomUsageEvents> mCustomUsageEventsList = new ArrayList<>();
     private DateFormat mDateFormat = new SimpleDateFormat();
@@ -78,7 +78,7 @@ public class UsageListAdapter extends RecyclerView.Adapter<UsageListAdapter.View
         }
     }
 
-    public UsageListAdapter() {
+    public UsageEventsListAdapter() {
     }
 
     @Override

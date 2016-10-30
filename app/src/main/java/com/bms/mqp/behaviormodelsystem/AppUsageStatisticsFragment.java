@@ -1,3 +1,5 @@
+package com.bms.mqp.behaviormodelsystem;
+
 /*
 * Copyright 2014 The Android Open Source Project
 *
@@ -14,12 +16,10 @@
 * limitations under the License.
 */
 
-package com.bms.mqp.behaviormodelsystem;
 
-import android.app.usage.UsageEvents;
+
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
@@ -30,7 +30,6 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -44,6 +43,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
 /**
  * Fragment that demonstrates how to use App Usage Statistics API.
  */
@@ -51,15 +51,13 @@ public class AppUsageStatisticsFragment extends Fragment {
 
     private static final String TAG = AppUsageStatisticsFragment.class.getSimpleName();
 
-    private static final long USAGE_STATS_PERIOD = 1000 * 60 * 60 * 24 * 14;
-    private long mLastTime;
-
     //VisibleForTesting for variables below
     UsageStatsManager mUsageStatsManager;
-    UsageListAdapter mUsageListAdapter;
+    UsageStatsListAdapter mUsageListAdapter;
     RecyclerView mRecyclerView;
     RecyclerView.LayoutManager mLayoutManager;
     Button mOpenUsageSettingButton;
+    Spinner mSpinner;
 
     /**
      * Use this factory method to create a new instance of
@@ -81,68 +79,79 @@ public class AppUsageStatisticsFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         mUsageStatsManager = (UsageStatsManager) getActivity()
-                .getSystemService(Context.USAGE_STATS_SERVICE); //Context.USAGE_STATS_SERVICE
-
-        // get events form last hour
-        //mLastTime = System.currentTimeMillis() - USAGE_STATS_PERIOD;
-        mLastTime = System.currentTimeMillis() - 1000*60*60;
-
-
+                .getSystemService("usagestats"); //Context.USAGE_STATS_SERVICE
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_app_usage_statistics, container, false);
-
-        Button mRefreshButton = (Button) view.findViewById(R.id.button_refresh);
-        mRefreshButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                UsageEvents usageEventsList = getUsageStatistics();
-                updateAppsList(usageEventsList);
-            }
-        });
-        return view;
+                             Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_app_usage_statistics, container, false);
     }
 
     @Override
     public void onViewCreated(View rootView, Bundle savedInstanceState) {
         super.onViewCreated(rootView, savedInstanceState);
 
-        mUsageListAdapter = new UsageListAdapter();
+        mUsageListAdapter = new UsageStatsListAdapter();
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.recyclerview_app_usage);
         mLayoutManager = mRecyclerView.getLayoutManager();
         mRecyclerView.scrollToPosition(0);
         mRecyclerView.setAdapter(mUsageListAdapter);
         mOpenUsageSettingButton = (Button) rootView.findViewById(R.id.button_open_usage_setting);
+        mSpinner = (Spinner) rootView.findViewById(R.id.spinner_time_span);
 
+        SpinnerAdapter spinnerAdapter = ArrayAdapter.createFromResource(getActivity(),
+                R.array.action_list, android.R.layout.simple_spinner_dropdown_item);
+        mSpinner.setAdapter(spinnerAdapter);
+        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            String[] strings = getResources().getStringArray(R.array.action_list);
+
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                StatsUsageInterval statsUsageInterval = StatsUsageInterval
+                        .getValue(strings[position]);
+                if (statsUsageInterval != null) {
+                    List<UsageStats> usageStatsList =
+                            getUsageStatistics(statsUsageInterval.mInterval);
+                    Collections.sort(usageStatsList, new LastTimeLaunchedComparatorDesc());
+                    updateAppsList(usageStatsList);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
     }
 
     /**
      * Returns the {@link #mRecyclerView} including the time span specified by the
      * intervalType argument.
      *
+     * @param intervalType The time interval by which the stats are aggregated.
+     *                     Corresponding to the value of {@link UsageStatsManager}.
+     *                     E.g. {@link UsageStatsManager#INTERVAL_DAILY}, {@link
+     *                     UsageStatsManager#INTERVAL_WEEKLY},
      *
-     * @return A list of {@link UsageStats}.
+     * @return A list of {@link android.app.usage.UsageStats}.
      */
-    public UsageEvents getUsageStatistics() {
+    public List<UsageStats> getUsageStatistics(int intervalType) {
         // Get the app statistics since one year ago from the current time.
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.YEAR, -1);
 
-        long now = System.currentTimeMillis();
+        List<UsageStats> queryUsageStats = mUsageStatsManager
+                .queryUsageStats(intervalType, cal.getTimeInMillis(),
+                        System.currentTimeMillis());
 
-        UsageEvents queryUsageStats = mUsageStatsManager
-                .queryEvents(mLastTime, now);
-
-        if (!queryUsageStats.hasNextEvent()) {
+        if (queryUsageStats.size() == 0) {
             Log.i(TAG, "The user may not allow the access to apps usage. ");
             Toast.makeText(getActivity(),
                     getString(R.string.explanation_access_to_appusage_is_not_enabled),
                     Toast.LENGTH_LONG).show();
             mOpenUsageSettingButton.setVisibility(View.VISIBLE);
-            mOpenUsageSettingButton.setOnClickListener(new OnClickListener() {
+            mOpenUsageSettingButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
@@ -155,46 +164,71 @@ public class AppUsageStatisticsFragment extends Fragment {
     /**
      * Updates the {@link #mRecyclerView} with the list of {@link UsageStats} passed as an argument.
      *
-     * @param usageEventsList A list of {@link UsageStats} from which update the
+     * @param usageStatsList A list of {@link UsageStats} from which update the
      *                       {@link #mRecyclerView}.
      */
     //VisibleForTesting
-    void updateAppsList(UsageEvents usageEventsList) {
-        List<CustomUsageEvents> customUsageEventsList = new ArrayList<>();
-        while (usageEventsList.hasNextEvent()) {
-            CustomUsageEvents customUsageEvents = new CustomUsageEvents();
-            UsageEvents.Event event;
-            event = new UsageEvents.Event();
-            usageEventsList.getNextEvent(event);
-            customUsageEvents.usageEvent = event;
+    void updateAppsList(List<UsageStats> usageStatsList) {
+        List<CustomUsageStats> customUsageStatsList = new ArrayList<>();
+        for (int i = 0; i < usageStatsList.size(); i++) {
+            CustomUsageStats customUsageStats = new CustomUsageStats();
+            customUsageStats.usageStats = usageStatsList.get(i);
             try {
                 Drawable appIcon = getActivity().getPackageManager()
-                        .getApplicationIcon(customUsageEvents.usageEvent.getPackageName());
-                customUsageEvents.appIcon = appIcon;
+                        .getApplicationIcon(customUsageStats.usageStats.getPackageName());
+                customUsageStats.appIcon = appIcon;
             } catch (PackageManager.NameNotFoundException e) {
                 Log.w(TAG, String.format("App Icon is not found for %s",
-                        customUsageEvents.usageEvent.getPackageName()));
-                customUsageEvents.appIcon = getActivity()
+                        customUsageStats.usageStats.getPackageName()));
+                customUsageStats.appIcon = getActivity()
                         .getDrawable(R.drawable.ic_default_app_launcher);
             }
-            customUsageEventsList.add(customUsageEvents);
-            }
-            Collections.sort(customUsageEventsList, new TimeStampComparator());
-            mUsageListAdapter.setCustomUsageStatsList(customUsageEventsList);
-            mUsageListAdapter.notifyDataSetChanged();
-            mRecyclerView.scrollToPosition(0);
-
+            customUsageStatsList.add(customUsageStats);
+        }
+        mUsageListAdapter.setCustomUsageStatsList(customUsageStatsList);
+        mUsageListAdapter.notifyDataSetChanged();
+        mRecyclerView.scrollToPosition(0);
     }
 
     /**
      * The {@link Comparator} to sort a collection of {@link UsageStats} sorted by the timestamp
      * last time the app was used in the descendant order.
      */
-    private static class TimeStampComparator implements Comparator<CustomUsageEvents> {
+    private static class LastTimeLaunchedComparatorDesc implements Comparator<UsageStats> {
 
         @Override
-        public int compare(CustomUsageEvents left, CustomUsageEvents right) {
-            return Long.compare(right.usageEvent.getTimeStamp(), left.usageEvent.getTimeStamp());
+        public int compare(UsageStats left, UsageStats right) {
+            return Long.compare(right.getLastTimeUsed(), left.getLastTimeUsed());
+        }
+    }
+
+    /**
+     * Enum represents the intervals for {@link android.app.usage.UsageStatsManager} so that
+     * values for intervals can be found by a String representation.
+     *
+     */
+    //VisibleForTesting
+    static enum StatsUsageInterval {
+        DAILY("Daily", UsageStatsManager.INTERVAL_DAILY),
+        WEEKLY("Weekly", UsageStatsManager.INTERVAL_WEEKLY),
+        MONTHLY("Monthly", UsageStatsManager.INTERVAL_MONTHLY),
+        YEARLY("Yearly", UsageStatsManager.INTERVAL_YEARLY);
+
+        private int mInterval;
+        private String mStringRepresentation;
+
+        StatsUsageInterval(String stringRepresentation, int interval) {
+            mStringRepresentation = stringRepresentation;
+            mInterval = interval;
+        }
+
+        static StatsUsageInterval getValue(String stringRepresentation) {
+            for (StatsUsageInterval statsUsageInterval : values()) {
+                if (statsUsageInterval.mStringRepresentation.equals(stringRepresentation)) {
+                    return statsUsageInterval;
+                }
+            }
+            return null;
         }
     }
 }

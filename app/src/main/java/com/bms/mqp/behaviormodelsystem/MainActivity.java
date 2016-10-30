@@ -92,9 +92,12 @@ public class MainActivity extends AppCompatActivity
 
         switch (viewId) {
             case R.id.nav_apps:
-                fragment = new AppUsageStatisticsFragment();
-                title  = "Apps";
+                fragment = new AppUsageEventsFragment();
+                title  = "App Usage Events";
                 break;
+            case R.id.nav_stats:
+                fragment = new AppUsageStatisticsFragment();
+                title = "App Usage Stats";
             case R.id.nav_location:
                 // fragment = new EventsFragment();
                 title = "Location";
