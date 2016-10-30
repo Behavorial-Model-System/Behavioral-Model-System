@@ -47,7 +47,7 @@ public class AppUsageEventsFragment extends Fragment {
 
     private static final String TAG = AppUsageEventsFragment.class.getSimpleName();
 
-    private static final long USAGE_STATS_PERIOD = 1000 * 60 * 60 * 24 * 14;
+    private static final long USAGE_STATS_PERIOD = 1000 * 60 * 60 * 1;
     private long mLastTime;
 
     //VisibleForTesting for variables below
