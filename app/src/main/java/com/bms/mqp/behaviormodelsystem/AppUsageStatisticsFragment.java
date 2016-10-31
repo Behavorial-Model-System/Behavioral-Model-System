@@ -20,6 +20,7 @@ package com.bms.mqp.behaviormodelsystem;
 
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
@@ -37,6 +38,7 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
 import android.widget.Toast;
+import android.view.View.OnClickListener;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -57,7 +59,6 @@ public class AppUsageStatisticsFragment extends Fragment {
     RecyclerView mRecyclerView;
     RecyclerView.LayoutManager mLayoutManager;
     Button mOpenUsageSettingButton;
-    Spinner mSpinner;
 
     /**
      * Use this factory method to create a new instance of
@@ -79,13 +80,29 @@ public class AppUsageStatisticsFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         mUsageStatsManager = (UsageStatsManager) getActivity()
-                .getSystemService("usagestats"); //Context.USAGE_STATS_SERVICE
+                .getSystemService(Context.USAGE_STATS_SERVICE); //Context.USAGE_STATS_SERVICE
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_app_usage_statistics, container, false);
+        View view = inflater.inflate(R.layout.fragment_app_usage_statistics, container, false);
+
+        Button mRefreshButton = (Button) view.findViewById(R.id.button_refresh);
+        mRefreshButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String[] strings = getResources().getStringArray(R.array.action_list);
+
+                StatsUsageInterval statsUsageInterval = StatsUsageInterval
+                        .getValue(strings[0]);
+                List<UsageStats> usageStatsList =
+                        getUsageStatistics(statsUsageInterval.mInterval);
+                Collections.sort(usageStatsList, new LastTimeLaunchedComparatorDesc());
+                updateAppsList(usageStatsList);
+            }
+        });
+        return view;
     }
 
     @Override
@@ -98,31 +115,9 @@ public class AppUsageStatisticsFragment extends Fragment {
         mRecyclerView.scrollToPosition(0);
         mRecyclerView.setAdapter(mUsageListAdapter);
         mOpenUsageSettingButton = (Button) rootView.findViewById(R.id.button_open_usage_setting);
-        mSpinner = (Spinner) rootView.findViewById(R.id.spinner_time_span);
 
         SpinnerAdapter spinnerAdapter = ArrayAdapter.createFromResource(getActivity(),
                 R.array.action_list, android.R.layout.simple_spinner_dropdown_item);
-        mSpinner.setAdapter(spinnerAdapter);
-        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-
-            String[] strings = getResources().getStringArray(R.array.action_list);
-
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                StatsUsageInterval statsUsageInterval = StatsUsageInterval
-                        .getValue(strings[position]);
-                if (statsUsageInterval != null) {
-                    List<UsageStats> usageStatsList =
-                            getUsageStatistics(statsUsageInterval.mInterval);
-                    Collections.sort(usageStatsList, new LastTimeLaunchedComparatorDesc());
-                    updateAppsList(usageStatsList);
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
-        });
     }
 
     /**

@@ -104,6 +104,7 @@ public class MainActivity extends AppCompatActivity
             case R.id.nav_stats:
                 fragment = new AppUsageStatisticsFragment();
                 title = "App Usage Stats";
+                break;
             case R.id.nav_location:
                 // fragment = new EventsFragment();
                 title = "Location";
