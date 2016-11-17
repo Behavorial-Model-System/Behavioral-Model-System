@@ -4,13 +4,10 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -21,7 +18,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, AccelerometerFragment.OnFragmentInteractionListener {
+        implements NavigationView.OnNavigationItemSelectedListener, TiltFragment.OnFragmentInteractionListener {
+    AlarmReceiver alarm = new AlarmReceiver();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,19 +67,20 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    // Menu options to set and cancel the alarm.
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (item.getItemId()) {
+            // When the user clicks START ALARM, set the alarm.
+            case R.id.start_action:
+                alarm.setAlarm(this);
+                return true;
+            // When the user clicks CANCEL ALARM, cancel the alarm.
+            case R.id.cancel_action:
+                alarm.cancelAlarm(this);
+                return true;
         }
-
-        return super.onOptionsItemSelected(item);
+        return false;
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -115,7 +114,7 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.id.nav_accelerometer:
                 // fragment = new EventsFragment();
-                fragment = new AccelerometerFragment();
+                fragment = new TiltFragment();
                 title = "Accelerometer";
                 break;
             case R.id.nav_wifi:
