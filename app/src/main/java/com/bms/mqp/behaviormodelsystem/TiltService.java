@@ -9,6 +9,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.TextView;
@@ -47,7 +48,7 @@ public class TiltService extends IntentService implements SensorEventListener {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+        mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mMagnometer= mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
@@ -60,10 +61,11 @@ public class TiltService extends IntentService implements SensorEventListener {
         // The URL from which to fetch content.
         // Log.v(TAG, notificationString);
         sendNotification("Tilt Notification");
-        updateOrientationAngles();
-        saveInfo();
+        SystemClock.sleep(7000);
+
 
         // Release the wake lock provided by the BroadcastReceiver.
+        mSensorManager.unregisterListener(this);
         AlarmReceiver.completeWakefulIntent(intent);
         // END_INCLUDE(service_onhandle)
     }
@@ -110,11 +112,13 @@ public class TiltService extends IntentService implements SensorEventListener {
             System.arraycopy(event.values, 0, mMagnetometerReading,
                     0, mMagnetometerReading.length);
         }
+        updateOrientationAngles();
+        saveInfo();
     }
 
     public void saveInfo(){
 
-        String test = "results: " + mOrientationAngles[0]*180/Math.PI +" "+mOrientationAngles[1]*180/Math.PI+ " "+ mOrientationAngles[2]*180/Math.PI;
+        String test = "results: " + mOrientationAngles[0]*180/Math.PI +" "+mOrientationAngles[1]*180/Math.PI+ " "+ mOrientationAngles[2]*180/Math.PI+"\n";
         ExternalSaver.save(test, "tiltService");
     }
 

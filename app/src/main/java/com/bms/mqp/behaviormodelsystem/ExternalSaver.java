@@ -19,7 +19,7 @@ import java.io.IOException;
 
 public class ExternalSaver {
     //location of folder to create and store data in
-    public static String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/aaTutorial";
+    public static String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/BigMoney";
 
 
     /** appends text to a textfile, creates the textfile if it doesnt exist

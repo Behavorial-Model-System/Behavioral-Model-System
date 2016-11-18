@@ -133,7 +133,6 @@ public class AppUsageStatisticsService extends IntentService {
             customUsageStatsList.add(customUsageStats);
             ExternalSaver.save("App: "+customUsageStats.usageStats.getPackageName()+" Last Time Used: "+customUsageStats.usageStats.getLastTimeUsed(),"UsageStats.txt\n");
         }
-        mRecyclerView.scrollToPosition(0);
     }
 
     /**

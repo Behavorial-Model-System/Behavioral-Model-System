@@ -57,6 +57,7 @@ public class WifiService extends IntentService {
             WifiResults temp = new WifiResults(results.get(i).SSID,results.get(i).BSSID,Integer.toString(results.get(i).level));
             networkList.add(i,temp);
             adapter.notifyDataSetChanged();
+            ExternalSaver.save("SSID: "+results.get(i).SSID+" BSSID: "+results.get(i).BSSID+ " Strength: "+Integer.toString(results.get(i).level)+"\n","Wifi.txt");
         }
 
         wifi.startScan();
