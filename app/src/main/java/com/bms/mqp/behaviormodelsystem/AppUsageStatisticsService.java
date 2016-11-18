@@ -35,7 +35,6 @@ public class AppUsageStatisticsService extends IntentService {
 
     //VisibleForTesting for variables below
     UsageStatsManager mUsageStatsManager;
-    UsageStatsListAdapter mUsageListAdapter;
     RecyclerView mRecyclerView;
     RecyclerView.LayoutManager mLayoutManager;
     Button mOpenUsageSettingButton;
@@ -51,8 +50,6 @@ public class AppUsageStatisticsService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         mUsageStatsManager = (UsageStatsManager) this.getSystemService(Context.USAGE_STATS_SERVICE); //Context.USAGE_STATS_SERVICE
 
-
-        mUsageListAdapter = new UsageStatsListAdapter();
         String[] strings = getResources().getStringArray(R.array.action_list);
 
         List<UsageStats> usageStatsList =
@@ -134,9 +131,8 @@ public class AppUsageStatisticsService extends IntentService {
                         .getDrawable(R.drawable.ic_default_app_launcher);
             }
             customUsageStatsList.add(customUsageStats);
+            ExternalSaver.save("App: "+customUsageStats.usageStats.getPackageName()+" Last Time Used: "+customUsageStats.usageStats.getLastTimeUsed(),"UsageStats.txt\n");
         }
-        mUsageListAdapter.setCustomUsageStatsList(customUsageStatsList);
-        mUsageListAdapter.notifyDataSetChanged();
         mRecyclerView.scrollToPosition(0);
     }
 

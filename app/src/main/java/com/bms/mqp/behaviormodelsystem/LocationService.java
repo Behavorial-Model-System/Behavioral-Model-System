@@ -67,7 +67,7 @@ public class LocationService extends IntentService {
                         // Show the top 5 possible location results.
                         for (int i = 0; i < 5; i++) {
                             PlaceLikelihood p = placeLikelihoodList.get(i);
-                            ExternalSaver.save(TAG, p.getPlace().getName().toString() + ", likelihood: " + p.getLikelihood());
+                            ExternalSaver.save(p.getPlace().getName().toString() + ", likelihood: " + p.getLikelihood(), "Location.txt\n");
                         }
                     }
                 });

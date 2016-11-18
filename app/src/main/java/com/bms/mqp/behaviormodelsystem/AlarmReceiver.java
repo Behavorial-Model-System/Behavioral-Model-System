@@ -43,9 +43,11 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
          * This intent holds an extra identifying the wake lock.
          */
         Intent service = new Intent(context, LocationService.class);
+        Intent service2 = new Intent(context, AppUsageEventsService.class);
 
         // Start the service, keeping the device awake while it is launching.
         startWakefulService(context, service);
+        startWakefulService(context, service2);
         // END_INCLUDE(alarm_onreceive)
     }
 

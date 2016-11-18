@@ -37,9 +37,6 @@ public class AppUsageEventsService extends IntentService {
 
     //VisibleForTesting for variables below
     UsageStatsManager mUsageStatsManager;
-    UsageEventsListAdapter mUsageEventsListAdapter;
-    RecyclerView mRecyclerView;
-    RecyclerView.LayoutManager mLayoutManager;
     Button mOpenUsageSettingButton;
     private static final String TAG = AppUsageEventsFragment.class.getSimpleName();
 
@@ -52,8 +49,6 @@ public class AppUsageEventsService extends IntentService {
 
         mLastTime = System.currentTimeMillis() - USAGE_STATS_PERIOD;
 
-
-        mUsageEventsListAdapter = new UsageEventsListAdapter();
 
         UsageEvents usageEventsList = getUsageStatistics();
         updateAppsList(usageEventsList);
@@ -86,12 +81,6 @@ public class AppUsageEventsService extends IntentService {
         return queryUsageStats;
     }
 
-    /**
-     * Updates the {@link #mRecyclerView} with the list of {@link UsageStats} passed as an argument.
-     *
-     * @param usageEventsList A list of {@link UsageStats} from which update the
-     *                       {@link #mRecyclerView}.
-     */
     //VisibleForTesting
     void updateAppsList(UsageEvents usageEventsList) {
         List<CustomUsageEvents> customUsageEventsList = new ArrayList<>();
@@ -112,10 +101,8 @@ public class AppUsageEventsService extends IntentService {
                         .getDrawable(R.drawable.ic_default_app_launcher);
             }
             customUsageEventsList.add(customUsageEvents);
+            ExternalSaver.save("App: "+event.getPackageName()+" Time Stamp: "+event.getTimeStamp(),"UsageEvents.txt\n");
         }
-        mUsageEventsListAdapter.setCustomUsageStatsList(customUsageEventsList);
-        mUsageEventsListAdapter.notifyDataSetChanged();
-        mRecyclerView.scrollToPosition(0);
     }
 
     /**
