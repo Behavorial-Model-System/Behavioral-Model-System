@@ -60,6 +60,8 @@ public class TiltService extends IntentService implements SensorEventListener {
         // The URL from which to fetch content.
         // Log.v(TAG, notificationString);
         sendNotification("Tilt Notification");
+        updateOrientationAngles();
+        saveInfo();
 
         // Release the wake lock provided by the BroadcastReceiver.
         AlarmReceiver.completeWakefulIntent(intent);
@@ -109,6 +111,13 @@ public class TiltService extends IntentService implements SensorEventListener {
                     0, mMagnetometerReading.length);
         }
     }
+
+    public void saveInfo(){
+
+        String test = "results: " + mOrientationAngles[0]*180/Math.PI +" "+mOrientationAngles[1]*180/Math.PI+ " "+ mOrientationAngles[2]*180/Math.PI;
+        ExternalSaver.save(test, "tiltService");
+    }
+
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
