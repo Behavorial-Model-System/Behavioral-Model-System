@@ -1,8 +1,25 @@
 package com.bms.mqp.behaviormodelsystem;
 
 import android.app.IntentService;
-import android.content.Intent;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NotificationCompat;
+import android.util.Log;
+
+import com.google.android.gms.awareness.Awareness;
+import com.google.android.gms.awareness.snapshot.PlacesResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.location.places.PlaceLikelihood;
+
+import java.util.List;
+
+// some code from aware test app on github
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -12,80 +29,77 @@ import android.content.Context;
  * helper methods.
  */
 public class LocationService extends IntentService {
-    // TODO: Rename actions, choose action names that describe tasks that this
-    // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
-    private static final String ACTION_FOO = "com.bms.mqp.behaviormodelsystem.action.FOO";
-    private static final String ACTION_BAZ = "com.bms.mqp.behaviormodelsystem.action.BAZ";
-
-    // TODO: Rename parameters
-    private static final String EXTRA_PARAM1 = "com.bms.mqp.behaviormodelsystem.extra.PARAM1";
-    private static final String EXTRA_PARAM2 = "com.bms.mqp.behaviormodelsystem.extra.PARAM2";
 
     public LocationService() {
         super("LocationService");
     }
 
-    /**
-     * Starts this service to perform action Foo with the given parameters. If
-     * the service is already performing a task this action will be queued.
-     *
-     * @see IntentService
-     */
-    // TODO: Customize helper method
-    public static void startActionFoo(Context context, String param1, String param2) {
-        Intent intent = new Intent(context, LocationService.class);
-        intent.setAction(ACTION_FOO);
-        intent.putExtra(EXTRA_PARAM1, param1);
-        intent.putExtra(EXTRA_PARAM2, param2);
-        context.startService(intent);
-    }
+    private static final String TAG = "LocationService";
+    public static final int NOTIFICATION_ID = 1;
+    private NotificationManager mNotificationManager;
 
-    /**
-     * Starts this service to perform action Baz with the given parameters. If
-     * the service is already performing a task this action will be queued.
-     *
-     * @see IntentService
-     */
-    // TODO: Customize helper method
-    public static void startActionBaz(Context context, String param1, String param2) {
-        Intent intent = new Intent(context, LocationService.class);
-        intent.setAction(ACTION_BAZ);
-        intent.putExtra(EXTRA_PARAM1, param1);
-        intent.putExtra(EXTRA_PARAM2, param2);
-        context.startService(intent);
-    }
+    private static final int PERMISSION_REQUEST_ACCESS_FINE_LOCATION = 940;
+    private GoogleApiClient mGoogleApiClient;
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        if (intent != null) {
-            final String action = intent.getAction();
-            if (ACTION_FOO.equals(action)) {
-                final String param1 = intent.getStringExtra(EXTRA_PARAM1);
-                final String param2 = intent.getStringExtra(EXTRA_PARAM2);
-                handleActionFoo(param1, param2);
-            } else if (ACTION_BAZ.equals(action)) {
-                final String param1 = intent.getStringExtra(EXTRA_PARAM1);
-                final String param2 = intent.getStringExtra(EXTRA_PARAM2);
-                handleActionBaz(param1, param2);
-            }
+        setupGoogleApiClient();
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
         }
+        Awareness.SnapshotApi.getPlaces(mGoogleApiClient)
+                .setResultCallback(new ResultCallback<PlacesResult>() {
+                    @Override
+                    public void onResult(@NonNull PlacesResult placesResult) {
+                        if (!placesResult.getStatus().isSuccess()) {
+                            Log.e(TAG, "Could not get places.");
+                            return;
+                        }
+                        List<PlaceLikelihood> placeLikelihoodList = placesResult.getPlaceLikelihoods();
+                        // Show the top 5 possible location results.
+                        for (int i = 0; i < 5; i++) {
+                            PlaceLikelihood p = placeLikelihoodList.get(i);
+                            ExternalSaver.save(TAG, p.getPlace().getName().toString() + ", likelihood: " + p.getLikelihood());
+                        }
+                    }
+                });
+        sendNotification("This works");
     }
 
-    /**
-     * Handle action Foo in the provided background thread with the provided
-     * parameters.
-     */
-    private void handleActionFoo(String param1, String param2) {
-        // TODO: Handle action Foo
-        throw new UnsupportedOperationException("Not yet implemented");
+    // Post a notification indicating whether a doodle was found.
+    private void sendNotification(String msg) {
+        mNotificationManager = (NotificationManager)
+                this.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+                new Intent(this, MainActivity.class), 0);
+
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.ic_launcher)
+                        .setStyle(new NotificationCompat.BigTextStyle()
+                                .bigText(msg))
+                        .setContentText(msg);
+
+        mBuilder.setContentIntent(contentIntent);
+        mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 
-    /**
-     * Handle action Baz in the provided background thread with the provided
-     * parameters.
-     */
-    private void handleActionBaz(String param1, String param2) {
-        // TODO: Handle action Baz
-        throw new UnsupportedOperationException("Not yet implemented");
+
+    private void setupGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(Awareness.API)
+                .build();
+        mGoogleApiClient.connect();
     }
+
+
 }

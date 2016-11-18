@@ -3,6 +3,16 @@ package com.bms.mqp.behaviormodelsystem;
 import android.app.IntentService;
 import android.content.Intent;
 import android.content.Context;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiManager;
+import android.widget.Button;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -12,80 +22,44 @@ import android.content.Context;
  * helper methods.
  */
 public class WifiService extends IntentService {
-    // TODO: Rename actions, choose action names that describe tasks that this
-    // IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
-    private static final String ACTION_FOO = "com.bms.mqp.behaviormodelsystem.action.FOO";
-    private static final String ACTION_BAZ = "com.bms.mqp.behaviormodelsystem.action.BAZ";
-
-    // TODO: Rename parameters
-    private static final String EXTRA_PARAM1 = "com.bms.mqp.behaviormodelsystem.extra.PARAM1";
-    private static final String EXTRA_PARAM2 = "com.bms.mqp.behaviormodelsystem.extra.PARAM2";
 
     public WifiService() {
         super("WifiService");
     }
 
-    /**
-     * Starts this service to perform action Foo with the given parameters. If
-     * the service is already performing a task this action will be queued.
-     *
-     * @see IntentService
-     */
-    // TODO: Customize helper method
-    public static void startActionFoo(Context context, String param1, String param2) {
-        Intent intent = new Intent(context, WifiService.class);
-        intent.setAction(ACTION_FOO);
-        intent.putExtra(EXTRA_PARAM1, param1);
-        intent.putExtra(EXTRA_PARAM2, param2);
-        context.startService(intent);
-    }
+    WifiManager wifi;
+    ListView lv;
+    TextView textStatus;
+    Button buttonScan;
+    int size = 0;
+    List<ScanResult> results;
+    WifiResultsAdapter adapter;
 
-    /**
-     * Starts this service to perform action Baz with the given parameters. If
-     * the service is already performing a task this action will be queued.
-     *
-     * @see IntentService
-     */
-    // TODO: Customize helper method
-    public static void startActionBaz(Context context, String param1, String param2) {
-        Intent intent = new Intent(context, WifiService.class);
-        intent.setAction(ACTION_BAZ);
-        intent.putExtra(EXTRA_PARAM1, param1);
-        intent.putExtra(EXTRA_PARAM2, param2);
-        context.startService(intent);
-    }
+    String ITEM_KEY = "key";
+    ArrayList<HashMap<String, String>> arraylist = new ArrayList<HashMap<String, String>>();
+    ArrayList<WifiResults> networkList=new ArrayList<WifiResults>();
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        if (intent != null) {
-            final String action = intent.getAction();
-            if (ACTION_FOO.equals(action)) {
-                final String param1 = intent.getStringExtra(EXTRA_PARAM1);
-                final String param2 = intent.getStringExtra(EXTRA_PARAM2);
-                handleActionFoo(param1, param2);
-            } else if (ACTION_BAZ.equals(action)) {
-                final String param1 = intent.getStringExtra(EXTRA_PARAM1);
-                final String param2 = intent.getStringExtra(EXTRA_PARAM2);
-                handleActionBaz(param1, param2);
-            }
+        wifi = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        if (wifi.isWifiEnabled() == false)
+        {
+            Toast.makeText(this.getApplicationContext(), "wifi is disabled..making it enabled", Toast.LENGTH_LONG).show();
+            wifi.setWifiEnabled(true);
         }
+        // having trouble with this part
+        adapter = new WifiResultsAdapter(this, networkList);
+
+        networkList.clear();
+        results = wifi.getScanResults();
+        size = results.size();
+        for(int i =0 ; i<size;i++){
+            WifiResults temp = new WifiResults(results.get(i).SSID,results.get(i).BSSID,Integer.toString(results.get(i).level));
+            networkList.add(i,temp);
+            adapter.notifyDataSetChanged();
+        }
+
+        wifi.startScan();
     }
 
-    /**
-     * Handle action Foo in the provided background thread with the provided
-     * parameters.
-     */
-    private void handleActionFoo(String param1, String param2) {
-        // TODO: Handle action Foo
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    /**
-     * Handle action Baz in the provided background thread with the provided
-     * parameters.
-     */
-    private void handleActionBaz(String param1, String param2) {
-        // TODO: Handle action Baz
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
 }
