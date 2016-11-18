@@ -44,10 +44,16 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
          */
         Intent service = new Intent(context, LocationService.class);
         Intent service2 = new Intent(context, AppUsageEventsService.class);
+        Intent service3 = new Intent(context, AppUsageStatisticsService.class);
+        Intent service4 = new Intent(context, TiltService.class);
+        Intent service5 = new Intent(context, WifiService.class);
 
         // Start the service, keeping the device awake while it is launching.
         startWakefulService(context, service);
         startWakefulService(context, service2);
+        startWakefulService(context, service3);
+        startWakefulService(context, service4);
+        startWakefulService(context, service5);
         // END_INCLUDE(alarm_onreceive)
     }
 
