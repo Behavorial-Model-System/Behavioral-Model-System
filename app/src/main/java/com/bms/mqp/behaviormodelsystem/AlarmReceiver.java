@@ -5,7 +5,9 @@ import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.preference.PreferenceManager;
 import android.support.v4.content.WakefulBroadcastReceiver;
 
 import java.util.Calendar;
@@ -22,7 +24,11 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
     // The app's AlarmManager, which provides access to the system alarm services.
     private AlarmManager alarmMgr;
     // The pending intent that is triggered when the alarm fires.
-    private PendingIntent alarmIntent;
+    PendingIntent AppUsagealarmIntent;
+    PendingIntent AppStatsalarmIntent;
+    PendingIntent LocationalarmIntent;
+    PendingIntent TiltalarmIntent;
+    PendingIntent wifialarmIntent;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -42,18 +48,28 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
          * In this example, we simply create a new intent to deliver to the service.
          * This intent holds an extra identifying the wake lock.
          */
-        Intent service = new Intent(context, LocationService.class);
-        Intent service2 = new Intent(context, AppUsageEventsService.class);
-        Intent service3 = new Intent(context, AppUsageStatisticsService.class);
-        Intent service4 = new Intent(context, TiltService.class);
-        Intent service5 = new Intent(context, WifiService.class);
+        Intent location = new Intent(context, LocationService.class);
+        Intent appusage = new Intent(context, AppUsageEventsService.class);
+        Intent appstats = new Intent(context, AppUsageStatisticsService.class);
+        Intent tilt = new Intent(context, TiltService.class);
+        Intent wifi = new Intent(context, WifiService.class);
 
         // Start the service, keeping the device awake while it is launching.
-        startWakefulService(context, service);
-        startWakefulService(context, service2);
-        startWakefulService(context, service3);
-        startWakefulService(context, service4);
-        startWakefulService(context, service5);
+        if (intent.getStringExtra("service").equals("app_usage")) {
+            startWakefulService(context, appusage);
+        }
+        if (intent.getStringExtra("service").equals("app_stats")) {
+            startWakefulService(context, appstats);
+        }
+        if (intent.getStringExtra("service").equals("wifi")) {
+            startWakefulService(context, wifi);
+        }
+        if (intent.getStringExtra("service").equals("location")) {
+            startWakefulService(context, location);
+        }
+        if (intent.getStringExtra("service").equals("tilt")) {
+            startWakefulService(context, tilt);
+        }
         // END_INCLUDE(alarm_onreceive)
     }
 
@@ -63,49 +79,45 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
      * alarm fires, the app broadcasts an Intent to this WakefulBroadcastReceiver.
      * @param context
      */
-    public void setAlarm(Context context) {
+    public void setAlarm(Context context, int id) {
         alarmMgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, AlarmReceiver.class);
-        alarmIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
+
+
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(System.currentTimeMillis());
         // Set the alarm's trigger time to 8:30 a.m.
 
-        /*
-         * If you don't have precise time requirements, use an inexact repeating alarm
-         * the minimize the drain on the device battery.
-         *
-         * The call below specifies the alarm type, the trigger time, the interval at
-         * which the alarm is fired, and the alarm's associated PendingIntent.
-         * It uses the alarm type RTC_WAKEUP ("Real Time Clock" wake up), which wakes up
-         * the device and triggers the alarm according to the time of the device's clock.
-         *
-         * Alternatively, you can use the alarm type ELAPSED_REALTIME_WAKEUP to trigger
-         * an alarm based on how much time has elapsed since the device was booted. This
-         * is the preferred choice if your alarm is based on elapsed time--for example, if
-         * you simply want your alarm to fire every 60 minutes. You only need to use
-         * RTC_WAKEUP if you want your alarm to fire at a particular date/time. Remember
-         * that clock-based time may not translate well to other locales, and that your
-         * app's behavior could be affected by the user changing the device's time setting.
-         *
-         * Here are some examples of ELAPSED_REALTIME_WAKEUP:
-         *
-         * // Wake up the device to fire a one-time alarm in one minute.
-         * alarmMgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-         *         SystemClock.elapsedRealtime() +
-         *         60*1000, alarmIntent);
-         *
-         * // Wake up the device to fire the alarm in 30 minutes, and every 30 minutes
-         * // after that.
-         * alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-         *         AlarmManager.INTERVAL_HALF_HOUR,
-         *         AlarmManager.INTERVAL_HALF_HOUR, alarmIntent);
-         */
-
+        SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(context);
         // Set the alarm to fire at approximately 8:30 a.m., according to the device's
         // clock, and to repeat once a day.
-        alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, 60000, 60000, alarmIntent);
+        if (id == 1) { // app usage
+            intent.putExtra("service", "app_usage");
+            AppUsagealarmIntent = PendingIntent.getBroadcast(context, id, intent, 0);
+            alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, Integer.valueOf(SP.getString("app_usage_interval", "6000")), Integer.valueOf(SP.getString("app_usage_interval", "6000")), AppUsagealarmIntent);
+        }
+        if (id == 2) { // app stats
+            intent.putExtra("service", "app_stats");
+            AppStatsalarmIntent = PendingIntent.getBroadcast(context, id, intent, 0);
+            alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, Integer.valueOf(SP.getString("app_stats_interval", "6000")), Integer.valueOf(SP.getString("app_stats_interval", "6000")), AppStatsalarmIntent);
+        }
+        if (id == 3) { // wifi
+            intent.putExtra("service", "wifi");
+            wifialarmIntent = PendingIntent.getBroadcast(context, id, intent, 0);
+            alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, Integer.valueOf(SP.getString("wifi_interval", "6000")), Integer.valueOf(SP.getString("wifi_interval", "6000")), wifialarmIntent);
+        }
+        if (id == 4) { // location
+            intent.putExtra("service", "location");
+            LocationalarmIntent = PendingIntent.getBroadcast(context, id, intent, 0);
+            alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, Integer.valueOf(SP.getString("location_interval", "6000")), Integer.valueOf(SP.getString("location_interval", "6000")), LocationalarmIntent);
+        }
+        if (id == 5) { // tilt
+            intent.putExtra("service", "tilt");
+            TiltalarmIntent = PendingIntent.getBroadcast(context, id, intent, 0);
+            alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, Integer.valueOf(SP.getString("tilt_interval", "6000")), Integer.valueOf(SP.getString("tilt_interval", "6000")), TiltalarmIntent);
+        }
+
 
         // Enable {@code SampleBootReceiver} to automatically restart the alarm when the
         // device is rebooted.
@@ -118,25 +130,38 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
     }
     // END_INCLUDE(set_alarm)
 
+
     /**
      * Cancels the alarm.
      * @param context
      */
     // BEGIN_INCLUDE(cancel_alarm)
-    public void cancelAlarm(Context context) {
+    public void cancelAlarm(Context context, int id) {
         // If the alarm has been set, cancel it.
-        if (alarmMgr!= null) {
-            alarmMgr.cancel(alarmIntent);
+        Intent intent = new Intent(context, AlarmReceiver.class);
+        PendingIntent alarmIntent;
+
+        SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(context);
+        // Set the alarm to fire at approximately 8:30 a.m., according to the device's
+        // clock, and to repeat once a day.
+
+        if (alarmMgr != null) {
+            if (id == 1) {
+                alarmMgr.cancel(AppUsagealarmIntent);
+            }
+            if (id == 2) {
+                alarmMgr.cancel(AppStatsalarmIntent);
+            }
+            if (id == 3) {
+                alarmMgr.cancel(wifialarmIntent);
+            }
+            if (id == 4) {
+                alarmMgr.cancel(LocationalarmIntent);
+            }
+            if (id == 5) {
+                alarmMgr.cancel(TiltalarmIntent);
+            }
         }
-
-        // Disable {@code SampleBootReceiver} so that it doesn't automatically restart the
-        // alarm when the device is rebooted.
-        ComponentName receiver = new ComponentName(context, BootReceiver.class);
-        PackageManager pm = context.getPackageManager();
-
-        pm.setComponentEnabledSetting(receiver,
-                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                PackageManager.DONT_KILL_APP);
     }
     // END_INCLUDE(cancel_alarm)
 }

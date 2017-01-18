@@ -5,15 +5,22 @@ import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.Intent;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
+import android.os.Message;
+import android.os.Parcelable;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v7.widget.RecyclerView;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -38,6 +45,7 @@ public class AppUsageStatisticsService extends IntentService {
     RecyclerView mRecyclerView;
     RecyclerView.LayoutManager mLayoutManager;
     Button mOpenUsageSettingButton;
+    private long mLastTime;
 
     public AppUsageStatisticsService() {
         super("AppUsageStatisticsService");
@@ -48,13 +56,20 @@ public class AppUsageStatisticsService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplication());
+
         mUsageStatsManager = (UsageStatsManager) this.getSystemService(Context.USAGE_STATS_SERVICE); //Context.USAGE_STATS_SERVICE
+        mLastTime = sharedPref.getLong("app_stats_recent", System.currentTimeMillis());
 
         String[] strings = getResources().getStringArray(R.array.action_list);
 
         List<UsageStats> usageStatsList =
                 getUsageStatistics(INTERVAL_DAILY);
         updateAppsList(usageStatsList);
+
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putLong("app_stats_recent", System.currentTimeMillis());
+        editor.commit();
     }
 
 
@@ -131,8 +146,24 @@ public class AppUsageStatisticsService extends IntentService {
                         .getDrawable(R.drawable.ic_default_app_launcher);
             }
             customUsageStatsList.add(customUsageStats);
-            ExternalSaver.save("App: "+customUsageStats.usageStats.getPackageName()+" Last Time Used: "+customUsageStats.usageStats.getLastTimeUsed(),"UsageStats.txt\n");
+            // ExternalSaver.save("App: "+customUsageStats.usageStats.getPackageName()+" Last Time Used: "+customUsageStats.usageStats.getLastTimeUsed(),"UsageStats.txt\n");
         }
+
+        String date = (DateFormat.format("dd-MM-yyyy hh:mm:ss", new java.util.Date()).toString());
+
+        Message msg = Message.obtain();
+        Bundle b = new Bundle();
+        b.putParcelableArrayList("usageStats", (ArrayList<? extends Parcelable>) customUsageStatsList);
+        b.putString("time", date);
+        msg.setData(b);
+
+
+        try {
+            ExternalSaver.writeMessage(msg);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**

@@ -18,11 +18,47 @@ package com.bms.mqp.behaviormodelsystem;
 
 import android.app.usage.UsageEvents;
 import android.graphics.drawable.Drawable;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 /**
  * Entity class represents usage stats and app icon.
  */
-public class CustomUsageEvents {
+public class CustomUsageEvents implements Parcelable {
     public UsageEvents.Event usageEvent;
     public Drawable appIcon;
+
+
+    protected CustomUsageEvents(Parcel in) {
+        usageEvent = (UsageEvents.Event) in.readValue(UsageEvents.Event.class.getClassLoader());
+        appIcon = (Drawable) in.readValue(Drawable.class.getClassLoader());
+    }
+
+    public CustomUsageEvents() {
+
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeValue(usageEvent);
+        dest.writeValue(appIcon);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<CustomUsageEvents> CREATOR = new Parcelable.Creator<CustomUsageEvents>() {
+        @Override
+        public CustomUsageEvents createFromParcel(Parcel in) {
+            return new CustomUsageEvents(in);
+        }
+
+        @Override
+        public CustomUsageEvents[] newArray(int size) {
+            return new CustomUsageEvents[size];
+        }
+    };
 }

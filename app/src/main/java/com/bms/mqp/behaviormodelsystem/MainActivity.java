@@ -1,9 +1,12 @@
 package com.bms.mqp.behaviormodelsystem;
 
 import android.Manifest;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -47,6 +50,29 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         displayView(R.id.nav_apps);
+
+        SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        boolean appUsage = SP.getBoolean("app_usage", false);
+        boolean appStats = SP.getBoolean("app_stats", false);
+        boolean wifi = SP.getBoolean("wifi_list", false);
+        boolean location = SP.getBoolean("location_list", false);
+        boolean tilt = SP.getBoolean("phone_tilt", false);
+
+        if (appUsage) {
+            alarm.setAlarm(this, 1);
+        }
+        if (appStats) {
+            alarm.setAlarm(this, 2);
+        }
+        if (wifi) {
+            alarm.setAlarm(this, 3);
+        }
+        if (location) {
+            alarm.setAlarm(this, 4);
+        }
+        if (tilt) {
+            alarm.setAlarm(this, 5);
+        }
     }
 
     @Override
@@ -71,12 +97,9 @@ public class MainActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             // When the user clicks START ALARM, set the alarm.
-            case R.id.start_action:
-                alarm.setAlarm(this);
-                return true;
-            // When the user clicks CANCEL ALARM, cancel the alarm.
-            case R.id.cancel_action:
-                alarm.cancelAlarm(this);
+            case R.id.settings:
+                Intent i = new Intent(this, SettingsActivity.class);
+                startActivity(i);
                 return true;
         }
         return false;
