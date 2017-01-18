@@ -26,6 +26,10 @@
             android:id="@+id/nav_wifi"
             android:icon="@drawable/ic_menu_manage"
             android:title="WiFi" />
+        <item
+            android:id="@+id/nav_auth"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Authentication Checker" />
     </group>
 
 </menu>

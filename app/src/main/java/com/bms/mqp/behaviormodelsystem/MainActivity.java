@@ -123,6 +123,11 @@ public class MainActivity extends AppCompatActivity
                 fragment = new WifiFragment();
                 title = "WiFi";
                 break;
+            case R.id.nav_auth:
+                // fragment = new EventsFragment();
+                fragment = new AuthenticationFragment();
+                title = "Authentication Checker";
+                break;
 
         }
 
