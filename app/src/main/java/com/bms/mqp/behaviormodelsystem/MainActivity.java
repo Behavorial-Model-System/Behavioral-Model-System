@@ -57,6 +57,8 @@ public class MainActivity extends AppCompatActivity
         boolean wifi = SP.getBoolean("wifi_list", false);
         boolean location = SP.getBoolean("location_list", false);
         boolean tilt = SP.getBoolean("phone_tilt", false);
+        boolean auth = SP.getBoolean("auth", false);
+
 
         if (appUsage) {
             alarm.setAlarm(this, 1);
@@ -72,6 +74,9 @@ public class MainActivity extends AppCompatActivity
         }
         if (tilt) {
             alarm.setAlarm(this, 5);
+        }
+        if (auth) {
+            alarm.setAlarm(this, 6);
         }
     }
 

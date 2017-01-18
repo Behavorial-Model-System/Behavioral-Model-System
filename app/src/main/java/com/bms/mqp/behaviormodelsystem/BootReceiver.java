@@ -31,6 +31,7 @@ public class BootReceiver extends BroadcastReceiver {
             boolean wifi = SP.getBoolean("wifi_list", false);
             boolean location = SP.getBoolean("location_list", false);
             boolean tilt = SP.getBoolean("phone_tilt", false);
+            boolean auth = SP.getBoolean("auth", false);
 
             if (appUsage) {
                 alarm.setAlarm(context, 1);
@@ -46,6 +47,9 @@ public class BootReceiver extends BroadcastReceiver {
             }
             if (tilt) {
                 alarm.setAlarm(context, 5);
+            }
+            if (auth) {
+                alarm.setAlarm(context, 6);
             }
         }
     }

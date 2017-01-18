@@ -28,6 +28,11 @@
             android:title="Tilt"
             android:summary="Tracks Tilt of Phone"
             android:defaultValue="true" />
+        <CheckBoxPreference
+            android:key="auth"
+            android:title="Authentication"
+            android:summary="The authentication/Deauthentication service"
+            android:defaultValue="true" />
     </PreferenceCategory>
     <PreferenceCategory
         android:title="Interval"
@@ -36,27 +41,32 @@
             android:key="app_usage_interval"
             android:title="App Usage"
             android:inputType="number"
-            android:defaultValue="6000" />
+            android:defaultValue="60000" />
         <EditTextPreference
             android:key="app_stats_interval"
             android:title="App Stats"
             android:inputType="number"
-            android:defaultValue="6000" />
+            android:defaultValue="60000" />
         <EditTextPreference
             android:key="wifi_interval"
             android:title="Wifi"
             android:inputType="number"
-            android:defaultValue="6000" />
+            android:defaultValue="60000" />
         <EditTextPreference
             android:key="location_interval"
             android:title="Location"
             android:inputType="number"
-            android:defaultValue="6000" />
+            android:defaultValue="60000" />
         <EditTextPreference
             android:key="tilt_interval"
             android:title="Tilt"
             android:inputType="number"
-            android:defaultValue="6000" />
+            android:defaultValue="60000" />
+        <EditTextPreference
+            android:key="auth_interval"
+            android:title="Authentication"
+            android:inputType="number"
+            android:defaultValue="10000" />
 
     </PreferenceCategory>
 </PreferenceScreen>

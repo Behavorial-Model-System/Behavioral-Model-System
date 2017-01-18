@@ -18,6 +18,8 @@ public class SettingsActivity extends PreferenceActivity {
     public static final String KEY_LOCATION_INTERVAL = "location_interval";
     public static final String KEY_PHONE_TILT = "phone_tilt";
     public static final String KEY_TILT_INTERVAL = "phone_tilt_interval";
+    public static final String KEY_AUTH = "authentication";
+    public static final String KEY_AUTH_INTERVAL = "authentication_interval";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +90,16 @@ public class SettingsActivity extends PreferenceActivity {
                     alarm.cancelAlarm(getActivity().getApplication(), 5);
                 }
             }
+            if (key.equals(KEY_AUTH)) {
+                Preference pref = findPreference(key);
+                // Set summary to be the user-description for the selected value
+                if (sharedPreferences.getBoolean(key, false)) {
+                    alarm.setAlarm(getActivity().getApplication(), 6);
+                }
+                else {
+                    alarm.cancelAlarm(getActivity().getApplication(), 6);
+                }
+            }
             if (key.equals(KEY_APP_USAGE_INTERVAL)) {
                 Preference pref = findPreference(key);
                 // Set summary to be the user-description for the selected value
@@ -134,6 +146,16 @@ public class SettingsActivity extends PreferenceActivity {
                 if (sharedPreferences.getBoolean(KEY_PHONE_TILT, false)) {
                     alarm.cancelAlarm(getActivity().getApplication(), 5);
                     alarm.setAlarm(getActivity().getApplication(), 5);
+                }
+            }
+
+            if (key.equals(KEY_AUTH_INTERVAL)) {
+                Preference pref = findPreference(key);
+                // Set summary to be the user-description for the selected value
+                pref.setSummary(sharedPreferences.getString(key, ""));
+                if (sharedPreferences.getBoolean(KEY_AUTH, false)) {
+                    alarm.cancelAlarm(getActivity().getApplication(), 6);
+                    alarm.setAlarm(getActivity().getApplication(), 6);
                 }
             }
         }
