@@ -6,20 +6,29 @@ import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.Intent;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
+import android.os.Message;
+import android.os.Parcelable;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.v7.widget.RecyclerView;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import static android.app.AlarmManager.RTC;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -45,13 +54,20 @@ public class AppUsageEventsService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplication());
+
         mUsageStatsManager = (UsageStatsManager) this.getSystemService(Context.USAGE_STATS_SERVICE); //Context.USAGE_STATS_SERVICE
 
-        mLastTime = System.currentTimeMillis() - USAGE_STATS_PERIOD;
+        mLastTime = sharedPref.getLong("app_usage_recent", System.currentTimeMillis());
 
 
         UsageEvents usageEventsList = getUsageStatistics();
         updateAppsList(usageEventsList);
+
+
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putLong("app_usage_recent", System.currentTimeMillis());
+        editor.commit();
     }
 
 
@@ -65,19 +81,6 @@ public class AppUsageEventsService extends IntentService {
         UsageEvents queryUsageStats = mUsageStatsManager
                 .queryEvents(mLastTime, now);
 
-        if (!queryUsageStats.hasNextEvent()) {
-            Log.i(TAG, "The user may not allow the access to apps usage. ");
-            Toast.makeText(this,
-                    getString(R.string.explanation_access_to_appusage_is_not_enabled),
-                    Toast.LENGTH_LONG).show();
-            mOpenUsageSettingButton.setVisibility(View.VISIBLE);
-            mOpenUsageSettingButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
-                }
-            });
-        }
         return queryUsageStats;
     }
 
@@ -101,8 +104,24 @@ public class AppUsageEventsService extends IntentService {
                         .getDrawable(R.drawable.ic_default_app_launcher);
             }
             customUsageEventsList.add(customUsageEvents);
-            ExternalSaver.save("App: "+event.getPackageName()+" Time Stamp: "+event.getTimeStamp(),"UsageEvents.txt\n");
+            // ExternalSaver.save("App: "+event.getPackageName()+" Time Stamp: "+event.getTimeStamp(),"UsageEvents.txt\n");
         }
+
+        String date = (DateFormat.format("dd-MM-yyyy hh:mm:ss", new java.util.Date()).toString());
+
+        Message msg = Message.obtain();
+        Bundle b = new Bundle();
+        b.putParcelableArrayList("usageEvents", (ArrayList<? extends Parcelable>) customUsageEventsList);
+        b.putString("time", date);
+        msg.setData(b);
+
+
+        try {
+            ExternalSaver.writeMessage(msg);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**

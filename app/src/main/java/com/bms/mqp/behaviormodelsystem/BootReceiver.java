@@ -8,6 +8,8 @@ package com.bms.mqp.behaviormodelsystem;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 /**
  * This BroadcastReceiver automatically (re)starts the alarm when the device is
@@ -23,7 +25,28 @@ public class BootReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED"))
         {
-            alarm.setAlarm(context);
+            SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(context);
+            boolean appUsage = SP.getBoolean("app_usage", false);
+            boolean appStats = SP.getBoolean("app_stats", false);
+            boolean wifi = SP.getBoolean("wifi_list", false);
+            boolean location = SP.getBoolean("location_list", false);
+            boolean tilt = SP.getBoolean("phone_tilt", false);
+
+            if (appUsage) {
+                alarm.setAlarm(context, 1);
+            }
+            if (appStats) {
+                alarm.setAlarm(context, 2);
+            }
+            if (wifi) {
+                alarm.setAlarm(context, 3);
+            }
+            if (location) {
+                alarm.setAlarm(context, 4);
+            }
+            if (tilt) {
+                alarm.setAlarm(context, 5);
+            }
         }
     }
 }

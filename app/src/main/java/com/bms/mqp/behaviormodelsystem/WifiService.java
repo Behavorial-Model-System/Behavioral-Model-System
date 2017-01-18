@@ -5,11 +5,16 @@ import android.content.Intent;
 import android.content.Context;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
+import android.os.Bundle;
+import android.os.Message;
+import android.os.Parcelable;
+import android.text.format.DateFormat;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,8 +62,24 @@ public class WifiService extends IntentService {
             WifiResults temp = new WifiResults(results.get(i).SSID,results.get(i).BSSID,Integer.toString(results.get(i).level));
             networkList.add(i,temp);
             adapter.notifyDataSetChanged();
-            ExternalSaver.save("SSID: "+results.get(i).SSID+" BSSID: "+results.get(i).BSSID+ " Strength: "+Integer.toString(results.get(i).level)+"\n","Wifi.txt");
+            // ExternalSaver.save("SSID: "+results.get(i).SSID+" BSSID: "+results.get(i).BSSID+ " Strength: "+Integer.toString(results.get(i).level)+"\n","Wifi.txt");
         }
+
+        String date = (DateFormat.format("dd-MM-yyyy hh:mm:ss", new java.util.Date()).toString());
+
+        Message msg = Message.obtain();
+        Bundle b = new Bundle();
+        b.putParcelableArrayList("wifi", networkList);
+        b.putString("time", date);
+        msg.setData(b);
+
+
+        try {
+            ExternalSaver.writeMessage(msg);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
         wifi.startScan();
     }

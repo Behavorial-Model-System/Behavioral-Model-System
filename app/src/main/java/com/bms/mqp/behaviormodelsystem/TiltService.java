@@ -9,10 +9,16 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Bundle;
+import android.os.Message;
+import android.os.Parcelable;
 import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.widget.TextView;
+
+import java.io.IOException;
 
 import static android.hardware.SensorManager.*;
 import static com.bms.mqp.behaviormodelsystem.SchedulingService.NOTIFICATION_ID;
@@ -119,7 +125,27 @@ public class TiltService extends IntentService implements SensorEventListener {
     public void saveInfo(){
 
         String test = "results: " + mOrientationAngles[0]*180/Math.PI +" "+mOrientationAngles[1]*180/Math.PI+ " "+ mOrientationAngles[2]*180/Math.PI+"\n";
-        ExternalSaver.save(test, "tiltService");
+        String date = (DateFormat.format("dd-MM-yyyy hh:mm:ss", new java.util.Date()).toString());
+        double x = mOrientationAngles[0]*180/Math.PI;
+        double y = mOrientationAngles[1]*180/Math.PI;
+        double z = mOrientationAngles[2]*180/Math.PI;
+
+        double array[] = {x, y, z};
+
+        Message msg = Message.obtain();
+        Bundle b = new Bundle();
+        b.putDoubleArray("tilt", array);
+        b.putString("time", date);
+        msg.setData(b);
+
+        try {
+            ExternalSaver.writeMessage(msg);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        // ExternalSaver.save(test, "tiltService");
     }
 
 

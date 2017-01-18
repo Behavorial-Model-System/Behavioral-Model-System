@@ -6,9 +6,13 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.os.Message;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
+import android.text.format.DateFormat;
 import android.util.Log;
 
 import com.google.android.gms.awareness.Awareness;
@@ -17,6 +21,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.places.PlaceLikelihood;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 // some code from aware test app on github
@@ -65,10 +71,31 @@ public class LocationService extends IntentService {
                         }
                         List<PlaceLikelihood> placeLikelihoodList = placesResult.getPlaceLikelihoods();
                         // Show the top 5 possible location results.
+
+                        ArrayList<PossiblePlace> possiblePlaces = new ArrayList<>();
+
                         for (int i = 0; i < 5; i++) {
                             PlaceLikelihood p = placeLikelihoodList.get(i);
-                            ExternalSaver.save(p.getPlace().getName().toString() + ", likelihood: " + p.getLikelihood(), "Location.txt\n");
+                            PossiblePlace place = new PossiblePlace(p.getPlace().getName().toString(), p.getLikelihood());
+                            possiblePlaces.add(place);
+                            // ExternalSaver.save(p.getPlace().getName().toString() + ", likelihood: " + p.getLikelihood(), "Location.txt\n");
                         }
+
+                        String date = (DateFormat.format("dd-MM-yyyy hh:mm:ss", new java.util.Date()).toString());
+
+                        Message msg = Message.obtain();
+                        Bundle b = new Bundle();
+                        b.putParcelableArrayList("location", (ArrayList<? extends Parcelable>) possiblePlaces);
+                        b.putString("time", date);
+                        msg.setData(b);
+
+
+                        try {
+                            ExternalSaver.writeMessage(msg);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
                     }
                 });
         sendNotification("This works");
