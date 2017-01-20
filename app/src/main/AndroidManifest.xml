@@ -56,6 +56,9 @@
         <service
             android:name=".AppUsageStatisticsService"
             android:exported="false" />
+        <service
+            android:name=".AuthenticationService"
+            android:exported="false" />
 
         <meta-data
             android:name="com.google.android.awareness.API_KEY"

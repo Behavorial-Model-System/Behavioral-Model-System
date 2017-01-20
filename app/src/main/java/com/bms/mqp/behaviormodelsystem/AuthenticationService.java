@@ -22,7 +22,7 @@ public class AuthenticationService extends IntentService {
                         .setContentTitle("Authentication Service Status")
                         .setContentText("Hello World!");
         NotificationManager notificationManager;
-        int mNotificationId = 001;
+        int mNotificationId = 042;
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
         if(SystemClock.currentThreadTimeMillis()%2 == 0) {
