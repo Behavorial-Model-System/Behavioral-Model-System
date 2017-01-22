@@ -93,6 +93,9 @@ public class ExternalSaver {
     public static void writeMessage(Message message) throws IOException {
         File file = new File(path + "/savedFile.json");
         OutputStream fos = null;
+        if(!file.exists()){
+            file.createNewFile();
+        }
 
         try {
             fos = new FileOutputStream(file, true);
