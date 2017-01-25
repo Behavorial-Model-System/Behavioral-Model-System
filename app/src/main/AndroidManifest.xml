@@ -67,6 +67,13 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBg6skdZeSjbBP1Q-8rr-olpAM4k2pWnws" />
 
+        <meta-data
+            android:name="com.google.android.apps.drive.APP_KEY"
+            android:value="AIzaSyAiv9TY693dlHazImW0h89s31S1E6ATDwI" />
+        <meta-data
+            android:name="com.google.android.gms:play-services-auth:9.6.1"
+            android:value="AIzaSyAiv9TY693dlHazImW0h89s31S1E6ATDwI" />
+
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
