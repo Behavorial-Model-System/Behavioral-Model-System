@@ -135,7 +135,7 @@ public class DriveService extends Service implements GoogleApiClient.ConnectionC
                 if (count == 0) {
                     //if 0 matching filenames were found, create a new file
                     //Drive.DriveApi.newDriveContents(googleApiClient).setResultCallback(driveContentsCallback);
-                    showMessage("Authenticated since the file matching the name of the save file was nto found");
+                    showMessage("Authenticated since the file matching the name of the save file was not found");
                     STATUS = true;
                 } else if (count == 1) {
                     //if 1 matching filename was found, write to that file
