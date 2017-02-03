@@ -59,6 +59,7 @@
         <service
             android:name=".AuthenticationService"
             android:exported="false" />
+        <service android:name=".DriveService" />
 
         <meta-data
             android:name="com.google.android.awareness.API_KEY"
