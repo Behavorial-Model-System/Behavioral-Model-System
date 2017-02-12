@@ -19,6 +19,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 import static android.content.Context.NOTIFICATION_SERVICE;
 
 /**
@@ -28,6 +29,7 @@ import static android.content.Context.NOTIFICATION_SERVICE;
 public class AuthenticationFragment extends Fragment implements View.OnClickListener {
     Button checkButton;
     TextView status;
+    String fileName = "checker";
     // notification in notification bar
 
 
@@ -53,25 +55,9 @@ public class AuthenticationFragment extends Fragment implements View.OnClickList
     }
 
     public void checkStatus(){
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(getActivity())
-                        .setSmallIcon(R.drawable.ic_launcher)
-                        .setContentTitle("Authentication Service Status")
-                        .setContentText("Hello World!");
-        NotificationManager notificationManager;
-        int mNotificationId = 001;
-        notificationManager = (NotificationManager) getActivity().getSystemService(NOTIFICATION_SERVICE);
-
-        if(SystemClock.currentThreadTimeMillis()%2 == 0) {
-            status.setText("Authenticated");
-            mBuilder.setContentText("Authenticated");
-            notificationManager.notify(mNotificationId, mBuilder.build());
-        }
-        else{
-            status.setText("Deauthenticated");
-            mBuilder.setContentText("Deauthenticated");
-            notificationManager.notify(mNotificationId, mBuilder.build());
-        }
+        Intent mIntent = new Intent(getActivity(), DriveService.class);
+        mIntent.putExtra("fileName", fileName);
+        getActivity().startService(mIntent);
 
     }
 

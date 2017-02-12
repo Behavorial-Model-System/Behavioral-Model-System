@@ -59,6 +59,7 @@
         <service
             android:name=".AuthenticationService"
             android:exported="false" />
+        <service android:name=".DriveService" />
 
         <meta-data
             android:name="com.google.android.awareness.API_KEY"
@@ -66,6 +67,13 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBg6skdZeSjbBP1Q-8rr-olpAM4k2pWnws" />
+
+        <meta-data
+            android:name="com.google.android.apps.drive.APP_KEY"
+            android:value="AIzaSyAiv9TY693dlHazImW0h89s31S1E6ATDwI" />
+        <meta-data
+            android:name="com.google.android.gms:play-services-auth:9.6.1"
+            android:value="AIzaSyAiv9TY693dlHazImW0h89s31S1E6ATDwI" />
 
         <activity
             android:name=".SettingsActivity"
@@ -75,6 +83,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.bms.mqp.behaviormodelsystem.MainActivity" />
         </activity>
+        <activity
+            android:name=".ResolverActivity"
+            android:label="ResolverActivity"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
