@@ -45,12 +45,6 @@ import java.util.List;
  */
 public class AppUsageEventsFragment extends Fragment {
 
-
-
-
-
-
-
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -69,10 +63,6 @@ public class AppUsageEventsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
-
-
     }
 
     @Override
