@@ -83,6 +83,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.bms.mqp.behaviormodelsystem.MainActivity" />
         </activity>
+        <activity
+            android:name=".ResolverActivity"
+            android:label="ResolverActivity"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

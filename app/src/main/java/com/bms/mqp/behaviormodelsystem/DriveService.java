@@ -204,7 +204,7 @@ public class DriveService extends Service implements GoogleApiClient.ConnectionC
                                 .getFileDescriptor());
                         // Read the first line of the file
                         BufferedReader reader = null;
-                        fileInputStream.read(new byte[fileInputStream.available()]);
+                        //fileInputStream.read(new byte[fileInputStream.available()]);
                         reader = new BufferedReader(new InputStreamReader(fileInputStream));
 
                         String line = reader.readLine();

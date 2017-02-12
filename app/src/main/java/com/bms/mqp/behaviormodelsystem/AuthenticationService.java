@@ -39,7 +39,7 @@ import static com.google.android.gms.wearable.DataMap.TAG;
  */
 
 public class AuthenticationService extends IntentService {
-    String fileName = "testauth";
+    String fileName = "checker";
 
 
 

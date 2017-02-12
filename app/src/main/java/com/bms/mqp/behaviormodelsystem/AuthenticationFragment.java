@@ -29,7 +29,7 @@ import static android.content.Context.NOTIFICATION_SERVICE;
 public class AuthenticationFragment extends Fragment implements View.OnClickListener {
     Button checkButton;
     TextView status;
-    String fileName = "testauth";
+    String fileName = "checker";
     // notification in notification bar
 
 
