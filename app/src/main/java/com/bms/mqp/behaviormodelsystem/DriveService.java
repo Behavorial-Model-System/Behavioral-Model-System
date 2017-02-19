@@ -134,7 +134,7 @@ public class DriveService extends Service implements GoogleApiClient.ConnectionC
                 showMessage("found " + count + " file(s) matching the name of the save file");
                 if (count == 0) {
                     //if 0 matching filenames were found, create a new file
-                    //Drive.DriveApi.newDriveContents(googleApiClient).setResultCallback(driveContentsCallback);
+                    Drive.DriveApi.newDriveContents(googleApiClient).setResultCallback(driveContentsCallback);
                     showMessage("Authenticated since the file matching the name of the save file was not found");
                     STATUS = true;
                 } else if (count == 1) {
@@ -182,7 +182,79 @@ public class DriveService extends Service implements GoogleApiClient.ConnectionC
         file.open(googleApiClient, DriveFile.MODE_READ_WRITE, null).setResultCallback(contentsOpenedCallback);
     }
 
+    /**
+     * Writes to the file
+     */
+    public void write() {
+        Log.i(TAG, "In write()");
+        //Log.i(TAG, "driveID: " + driveID);
+        DriveFile file = driveID.asDriveFile();
+        file.open(googleApiClient, DriveFile.MODE_READ_WRITE, null).setResultCallback(contentsOpenedCallback2);
+    }
 
+
+
+    /**
+     * Runs when a content is created successfully
+     * Creates a new file
+     */
+    final private ResultCallback<DriveApi.DriveContentsResult> driveContentsCallback = new
+            ResultCallback<DriveApi.DriveContentsResult>() {
+                @Override
+                public void onResult(DriveApi.DriveContentsResult result) {
+                    if (!result.getStatus().isSuccess()) {
+                        showMessage("Error while trying to create new file contents");
+                        return;
+                    }
+                    final DriveContents driveContents = result.getDriveContents();
+
+                    // Perform I/O off the UI thread.
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            // write content to DriveContents
+                            OutputStream outputStream = driveContents.getOutputStream();
+                            Writer writer = new OutputStreamWriter(outputStream);
+                            try {
+                                writer.write("authenticated\n");
+                                writer.close();
+                                outputStream.close();
+                            } catch (IOException e) {
+                                Log.e(TAG, e.getMessage());
+                            }
+
+                            MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
+                                    .setTitle(fileName)
+                                    .setMimeType("text/plain")
+                                    .setStarred(true).build();
+
+                            // create a file on root folder
+                            Drive.DriveApi.getRootFolder(googleApiClient)
+                                    .createFile(googleApiClient, changeSet, driveContents)
+                                    .setResultCallback(fileCallback);
+                        }
+                    }.start();
+                }
+            };
+
+
+    /**
+     * Runs when file is created successfully
+     * Saves the file's drive id to driveID
+     */
+    final private ResultCallback<DriveFolder.DriveFileResult> fileCallback = new
+            ResultCallback<DriveFolder.DriveFileResult>() {
+                @Override
+                public void onResult(DriveFolder.DriveFileResult result) {
+                    if (!result.getStatus().isSuccess()) {
+                        showMessage("Error while trying to create the file");
+                        return;
+                    }
+                    showMessage("Created a file with content: " + result.getDriveFile().getDriveId());
+                    driveID = result.getDriveFile().getDriveId();
+                    write();
+                }
+            };
     /**
      * Runs when the file is successfully opened
      * Appends the textToSave string to the file
@@ -226,6 +298,46 @@ public class DriveService extends Service implements GoogleApiClient.ConnectionC
                     }
 
 
+                }
+            };
+
+    /**
+     * Runs when the file is successfully opened
+     * Appends the textToSave string to the file
+     */
+    final private ResultCallback<DriveApi.DriveContentsResult> contentsOpenedCallback2 =
+            new ResultCallback<DriveApi.DriveContentsResult>() {
+                @Override
+                public void onResult(DriveApi.DriveContentsResult result) {
+                    if (!result.getStatus().isSuccess()) {
+                        showMessage("file cant be opened");
+                        return;
+                    }
+                    // DriveContents object contains pointers
+                    // to the actual byte stream
+                    try {
+                        DriveContents contents = result.getDriveContents();
+                        ParcelFileDescriptor parcelFileDescriptor = contents.getParcelFileDescriptor();
+                        FileInputStream fileInputStream = new FileInputStream(parcelFileDescriptor
+                                .getFileDescriptor());
+                        // Read to the end of the file.
+                        fileInputStream.read(new byte[fileInputStream.available()]);
+
+//                        // Append to the file.
+//                        FileOutputStream fileOutputStream = new FileOutputStream(parcelFileDescriptor
+//                                .getFileDescriptor());
+//                       // Writer writer = new OutputStreamWriter(fileOutputStream);
+//                       // writer.write(data);
+//                       // writer.flush();
+//                        //writer.close();
+//                        fileOutputStream.close();
+//                        fileInputStream.close();
+//                        contents.commit(googleApiClient, null);
+//                        showMessage("write successful");
+
+                    } catch (IOException e) {
+                        showMessage("IOException while appending to the output stream" + e);
+                    }
                 }
             };
 }

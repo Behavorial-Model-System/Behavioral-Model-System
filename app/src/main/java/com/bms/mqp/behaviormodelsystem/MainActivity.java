@@ -23,6 +23,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.telephony.TelephonyManager;
+import android.content.Context;
 
 
 public class MainActivity extends AppCompatActivity
@@ -59,6 +61,13 @@ public class MainActivity extends AppCompatActivity
 
             settings.edit().putBoolean("my_first_time", false).commit();
         }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
+
+        }
+
+
 
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);

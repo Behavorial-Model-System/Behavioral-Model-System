@@ -3,6 +3,9 @@ package com.bms.mqp.behaviormodelsystem;
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.content.Intent;
+import android.provider.Settings.Secure;
+import android.telephony.TelephonyManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.os.SystemClock;
@@ -33,13 +36,16 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 import static com.google.android.gms.wearable.DataMap.TAG;
+import static java.security.AccessController.getContext;
 
 /**
  * Created by Arun on 1/17/2017.
  */
 
 public class AuthenticationService extends IntentService {
-    String fileName = "checker";
+
+
+    private String fileName = "checker";
 
 
 
@@ -53,6 +59,13 @@ public class AuthenticationService extends IntentService {
     protected void onHandleIntent(Intent intent) {
 
         // spawn a Drive service thread
+        TelephonyManager telephonyManager;
+
+        telephonyManager = (TelephonyManager) getSystemService(Context.
+                TELEPHONY_SERVICE);
+
+        fileName = telephonyManager.getDeviceId();
+
         Intent mIntent = new Intent(this, DriveService.class);
         mIntent.putExtra("fileName", fileName);
         startService(mIntent);
