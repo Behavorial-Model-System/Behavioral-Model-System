@@ -70,7 +70,7 @@ public class AppUsageEventsService extends IntentService {
         editor.commit();
     }
 
-
+    //
     public UsageEvents getUsageStatistics() {
         // Get the app statistics since one year ago from the current time.
         Calendar cal = Calendar.getInstance();

@@ -20,8 +20,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Date;
 
 import static java.lang.System.out;
 
@@ -34,6 +36,9 @@ public class ExternalSaver {
     //location of folder to create and store data in
     public static String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/BigMoney";
     private static final String TAG = "Writer";
+    private static Date timeOfDayTimestamp;
+    private static final long interval = 5; //Interval in mins
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
 
     /** appends text to a textfile, creates the textfile if it doesnt exist
      *
@@ -91,9 +96,19 @@ public class ExternalSaver {
     }
 
     public static void writeMessage(Message message) throws IOException {
-        File file = new File(path + "/savedFile.json");
+
+        if (timeOfDayTimestamp == null) {
+            timeOfDayTimestamp = new Date();
+        }
+        Date comparisonTime = new Date();
+        if (comparisonTime.getTime() - timeOfDayTimestamp.getTime() > interval * 60 ) { //More than the maximum time frame has passed, we need a new timestamp
+            timeOfDayTimestamp =  comparisonTime;
+        }
+        File file = new File(path + "/savedFile " + dateFormat.format(timeOfDayTimestamp) + ".json");
         OutputStream fos = null;
+        System.out.println(path);
         if(!file.exists()){
+            file.getParentFile().mkdirs();
             file.createNewFile();
         }
 

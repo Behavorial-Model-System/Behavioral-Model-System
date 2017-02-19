@@ -58,7 +58,7 @@ public class WifiService extends IntentService {
         networkList.clear();
         results = wifi.getScanResults();
         size = results.size();
-        for(int i =0 ; i<size;i++){
+        for(int i = 0; i < size; i++){
             WifiResults temp = new WifiResults(results.get(i).SSID,results.get(i).BSSID,Integer.toString(results.get(i).level));
             networkList.add(i,temp);
             adapter.notifyDataSetChanged();
