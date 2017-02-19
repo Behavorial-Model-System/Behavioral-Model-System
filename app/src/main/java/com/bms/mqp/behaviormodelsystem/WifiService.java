@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -48,9 +49,10 @@ public class WifiService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         wifi = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
         if (wifi.isWifiEnabled() == false)
-        {
-            Toast.makeText(this.getApplicationContext(), "wifi is disabled..making it enabled", Toast.LENGTH_LONG).show();
-            wifi.setWifiEnabled(true);
+        {   //Deprecated section, used to turn on wifi if it wasn't on but that negatively effected user experience
+            //Toast.makeText(this.getApplicationContext(), "wifi is disabled..making it enabled", Toast.LENGTH_LONG).show();
+            //wifi.setWifiEnabled(true);
+            return;
         }
         // having trouble with this part
         adapter = new WifiResultsAdapter(this, networkList);
@@ -58,17 +60,17 @@ public class WifiService extends IntentService {
         networkList.clear();
         results = wifi.getScanResults();
         size = results.size();
-        for(int i = 0; i < size; i++){
-            WifiResults temp = new WifiResults(results.get(i).SSID,results.get(i).BSSID,Integer.toString(results.get(i).level));
-            networkList.add(i,temp);
+        //Iterate over all of the wifi results
+        for (int i = 0; i < size; i++) {
+            WifiResults temp = new WifiResults(results.get(i).SSID, results.get(i).BSSID, Integer.toString(results.get(i).level));
+            networkList.add(i, temp);
             adapter.notifyDataSetChanged();
             // ExternalSaver.save("SSID: "+results.get(i).SSID+" BSSID: "+results.get(i).BSSID+ " Strength: "+Integer.toString(results.get(i).level)+"\n","Wifi.txt");
         }
-
+        Collections.sort(networkList, Collections.<WifiResults>reverseOrder());
         String date = (DateFormat.format("dd-MM-yyyy hh:mm:ss", new java.util.Date()).toString());
-
-        Message msg = Message.obtain();
-        Bundle b = new Bundle();
+        Message msg = Message.obtain(); //Create a new instanceOf Message
+        Bundle b = new Bundle(); //Create a new instanceOf Bundle
         b.putParcelableArrayList("wifi", networkList);
         b.putString("time", date);
         msg.setData(b);

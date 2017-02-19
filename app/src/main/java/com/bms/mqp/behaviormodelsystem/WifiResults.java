@@ -7,7 +7,7 @@ import android.os.Parcelable;
  * Created by Arun on 10/30/2016.
  */
 
-public class WifiResults implements Parcelable{
+public class WifiResults implements Parcelable, Comparable<WifiResults>{
     private String SSID = "";
     private String BSSID = "";
     private String level = "";
@@ -26,6 +26,10 @@ public class WifiResults implements Parcelable{
         SSID = in.readString();
         BSSID = in.readString();
         level = in.readString();
+    }
+
+    public int compareTo(WifiResults anotherResult) {
+        return Integer.parseInt(level) - Integer.parseInt(anotherResult.getLevel());
     }
 
     public static final Creator<WifiResults> CREATOR = new Creator<WifiResults>() {
@@ -75,4 +79,5 @@ public class WifiResults implements Parcelable{
         dest.writeString(BSSID);
         dest.writeString(level);
     }
+
 }
