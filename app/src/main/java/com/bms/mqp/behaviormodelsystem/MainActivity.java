@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity
 
         if (settings.getBoolean("my_first_time", true)) {
 
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.READ_PHONE_STATE}, 1);
 
             new AlertDialog.Builder(this)
                     .setTitle("Open Usage Access")
@@ -60,11 +60,6 @@ public class MainActivity extends AppCompatActivity
                     .show();
 
             settings.edit().putBoolean("my_first_time", false).commit();
-        }
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_PHONE_STATE}, 1);
-
         }
 
 

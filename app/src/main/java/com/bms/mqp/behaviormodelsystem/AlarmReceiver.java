@@ -120,12 +120,12 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
         if (id == 5) { // tilt
             intent.putExtra("service", "tilt");
             TiltalarmIntent = PendingIntent.getBroadcast(context, id, intent, 0);
-            alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, Integer.valueOf(SP.getString("tilt_interval", "60000")), Integer.valueOf(SP.getString("tilt_interval", "60000")), TiltalarmIntent);
+            alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, Integer.valueOf(SP.getString("tilt_interval", "30000")), Integer.valueOf(SP.getString("tilt_interval", "30000")), TiltalarmIntent);
         }
         if (id == 6) { // authentication
             intent.putExtra("service", "authentication");
             AuthIntent = PendingIntent.getBroadcast(context, id, intent, 0);
-            alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, Integer.valueOf(SP.getString("tilt_interval", "10000")), Integer.valueOf(SP.getString("tilt_interval", "10000")), AuthIntent);
+            alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, Integer.valueOf(SP.getString("auth_interval", "60000")), Integer.valueOf(SP.getString("auth_interval", "60000")), AuthIntent);
         }
 
 

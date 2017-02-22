@@ -61,12 +61,12 @@
             android:key="tilt_interval"
             android:title="Tilt"
             android:inputType="number"
-            android:defaultValue="60000" />
+            android:defaultValue="30000" />
         <EditTextPreference
             android:key="auth_interval"
             android:title="Authentication"
             android:inputType="number"
-            android:defaultValue="10000" />
+            android:defaultValue="60000" />
 
     </PreferenceCategory>
 </PreferenceScreen>

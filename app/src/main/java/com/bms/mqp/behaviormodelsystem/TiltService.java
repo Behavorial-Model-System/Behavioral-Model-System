@@ -45,7 +45,8 @@ public class TiltService extends IntentService implements SensorEventListener {
     private final float[] mRotationMatrix = new float[9];
     private final float[] mOrientationAngles = new float[3];
 
-
+    public int counter = 0;
+    public int max_amount_per = 5;
     public static final String TAG = "Scheduling Demo";
     // An ID used to post the notification.
     public static final int NOTIFICATION_ID = 1;
@@ -119,7 +120,10 @@ public class TiltService extends IntentService implements SensorEventListener {
                     0, mMagnetometerReading.length);
         }
         updateOrientationAngles();
-        saveInfo();
+        if(counter < max_amount_per) {
+            saveInfo();
+            counter++;
+        }
     }
 
     public void saveInfo(){
