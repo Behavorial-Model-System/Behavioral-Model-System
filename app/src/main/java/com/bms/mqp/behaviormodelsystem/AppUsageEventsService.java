@@ -117,9 +117,13 @@ public class AppUsageEventsService extends IntentService {
 
 
         try {
-            ExternalSaver.writeMessage(msg);
+            Log.i("tkeekjkefj","Trying to launch JSON saving");
+            ExternalSaver ex = new ExternalSaver(getApplicationContext());
+            ex.writeMessage(msg);
         } catch (IOException e) {
-            e.printStackTrace();
+
+            Log.d("myapp", Log.getStackTraceString(e));
+
         }
 
     }

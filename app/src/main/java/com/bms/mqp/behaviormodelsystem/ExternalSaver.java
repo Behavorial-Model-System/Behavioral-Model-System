@@ -5,7 +5,10 @@ package com.bms.mqp.behaviormodelsystem;
  */
 
 import android.bluetooth.le.ScanResult;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.Message;
 import android.util.JsonWriter;
 import android.util.Log;
@@ -24,7 +27,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import static com.google.android.gms.cast.CastRemoteDisplayLocalService.startService;
 import static java.lang.System.out;
 
 /**
@@ -33,13 +39,22 @@ import static java.lang.System.out;
  */
 
 public class ExternalSaver {
-    //location of folder to create and store data in
+    //location of folder to create and store data , need to change this in drive api stuff as well if this changes
     public static String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/BigMoney";
     private static final String TAG = "Writer";
     private static Date timeOfDayTimestamp;
     private static final long interval = 5; //Interval in mins
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+    static int uploadCounter = 0;
+    static ArrayList<String> filesToUploadPath = new ArrayList<String>();
+    static ArrayList<String> filesToUpload = new ArrayList<String>();
 
+    public Context context;
+    static int filesBeforeUpload = 5;
+
+    public ExternalSaver(Context context){
+        this.context = context;
+    }
     /** appends text to a textfile, creates the textfile if it doesnt exist
      *
      * @param text string to write to file
@@ -95,18 +110,38 @@ public class ExternalSaver {
         }
     }
 
-    public static void writeMessage(Message message) throws IOException {
+    public  void writeMessage(Message message) throws IOException {
+
 
         if (timeOfDayTimestamp == null) {
             timeOfDayTimestamp = new Date();
         }
         Date comparisonTime = new Date();
         if (comparisonTime.getTime() - timeOfDayTimestamp.getTime() > interval * 60 ) { //More than the maximum time frame has passed, we need a new timestamp
-            timeOfDayTimestamp =  comparisonTime;
+            uploadCounter++;
+            // add a file to the arraylist of files to upload
+            filesToUploadPath.add(path + "/savedFile " + dateFormat.format(timeOfDayTimestamp) + ".json");
+            filesToUpload.add(dateFormat.format(timeOfDayTimestamp) + ".json");
+            if(uploadCounter % filesBeforeUpload == 0) {
+                // reset the counter to 0
+                uploadCounter = 0;
+                // can copy a list like this since nor objects
+                Intent t = new Intent(context, JSONFileUploadService.class);
+                t.putExtra("FILEPATHS",filesToUploadPath);
+                t.putExtra("FILENAMES",filesToUpload);
+
+                context.startService(t);
+                filesToUpload.clear();
+                filesToUploadPath.clear();
+
+
+            }
+
+            timeOfDayTimestamp = comparisonTime;
         }
         File file = new File(path + "/savedFile " + dateFormat.format(timeOfDayTimestamp) + ".json");
         OutputStream fos = null;
-        System.out.println(path);
+        Log.v(TAG,path);
         if(!file.exists()){
             file.getParentFile().mkdirs();
             file.createNewFile();
@@ -160,7 +195,9 @@ public class ExternalSaver {
         writer.close();
     }
 
-    public static void writeLocations(JsonWriter writer, Message m) throws IOException {
+
+
+    public  void writeLocations(JsonWriter writer, Message m) throws IOException {
         List<PossiblePlace> placeLikelihoodList = m.getData().getParcelableArrayList("location");
         writer.beginArray();
         for (PossiblePlace p : placeLikelihoodList) {
@@ -169,7 +206,7 @@ public class ExternalSaver {
         writer.endArray();
     }
 
-    public static void writeLocation(JsonWriter writer, PossiblePlace result) throws IOException {
+    public  void writeLocation(JsonWriter writer, PossiblePlace result) throws IOException {
         writer.beginObject();
         writer.name("location").value(result.name);
         writer.name("likelihood").value(result.likelihood);
@@ -178,7 +215,7 @@ public class ExternalSaver {
 
 
 
-    public static void writeWifiList(JsonWriter writer, Message m) throws IOException {
+    public  void writeWifiList(JsonWriter writer, Message m) throws IOException {
         List<WifiResults> results = m.getData().getParcelableArrayList("wifi");
         writer.beginArray();
         for (WifiResults result : results) {
@@ -187,7 +224,7 @@ public class ExternalSaver {
         writer.endArray();
     }
 
-    public static void writeScanResult(JsonWriter writer, WifiResults result) throws IOException {
+    public  void writeScanResult(JsonWriter writer, WifiResults result) throws IOException {
         writer.beginObject();
         writer.name("ssid").value(result.getSSID());
         writer.name("bssid").value(result.getBSSID());
@@ -195,7 +232,7 @@ public class ExternalSaver {
         writer.endObject();
     }
 
-    public static void writeUsageEvents(JsonWriter writer, Message m) throws IOException {
+    public  void writeUsageEvents(JsonWriter writer, Message m) throws IOException {
         List<CustomUsageEvents> events = m.getData().getParcelableArrayList("usageEvents");
         writer.beginArray();
         for (CustomUsageEvents event : events) {
@@ -204,7 +241,7 @@ public class ExternalSaver {
         writer.endArray();
     }
 
-    public static void writeUsageEvent(JsonWriter writer, CustomUsageEvents event) throws IOException {
+    public void writeUsageEvent(JsonWriter writer, CustomUsageEvents event) throws IOException {
         writer.beginObject();
         writer.name("name").value(event.usageEvent.getPackageName());
         writer.name("time").value(event.usageEvent.getTimeStamp());
@@ -213,7 +250,7 @@ public class ExternalSaver {
     }
 
 
-    public static void writeUsageStats(JsonWriter writer, Message m) throws IOException {
+    public void writeUsageStats(JsonWriter writer, Message m) throws IOException {
         List<CustomUsageStats> stats = m.getData().getParcelableArrayList("usageStats");
         writer.beginArray();
         for (CustomUsageStats stat : stats) {
@@ -222,7 +259,7 @@ public class ExternalSaver {
         writer.endArray();
     }
 
-    public static void writeUsageStat(JsonWriter writer, CustomUsageStats stat) throws IOException {
+    public void writeUsageStat(JsonWriter writer, CustomUsageStats stat) throws IOException {
         writer.beginObject();
         writer.name("name").value(stat.usageStats.getPackageName());
         writer.name("first").value(stat.usageStats.getFirstTimeStamp());
@@ -232,7 +269,7 @@ public class ExternalSaver {
         writer.endObject();
     }
 
-    public static void writeTiltArray(JsonWriter writer, double tiltvalues[]) throws IOException {
+    public void writeTiltArray(JsonWriter writer, double tiltvalues[]) throws IOException {
         writer.beginArray();
         for (Double value : tiltvalues) {
             writer.value(value);

@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Message;
 import android.os.Parcelable;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -77,9 +78,12 @@ public class WifiService extends IntentService {
 
 
         try {
-            ExternalSaver.writeMessage(msg);
+            Log.i("tkeekjkefj","Trying to launch JSON saving");
+            ExternalSaver ex = new ExternalSaver(getApplicationContext());
+            ex.writeMessage(msg);
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.d("myapp", Log.getStackTraceString(e));
+
         }
 
 
