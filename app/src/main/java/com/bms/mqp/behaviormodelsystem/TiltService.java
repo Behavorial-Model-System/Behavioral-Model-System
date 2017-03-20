@@ -67,7 +67,7 @@ public class TiltService extends IntentService implements SensorEventListener {
         // BEGIN_INCLUDE(service_onhandle)
         // The URL from which to fetch content.
         // Log.v(TAG, notificationString);
-        sendNotification("Tilt Notification");
+        //sendNotification("Tilt Notification");
         SystemClock.sleep(7000);
 
 

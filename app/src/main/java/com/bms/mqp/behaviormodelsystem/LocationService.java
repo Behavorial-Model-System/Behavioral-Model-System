@@ -101,7 +101,7 @@ public class LocationService extends IntentService {
 
                     }
                 });
-        sendNotification("This works");
+        //sendNotification("This works");
     }
 
     // Post a notification indicating whether a doodle was found.

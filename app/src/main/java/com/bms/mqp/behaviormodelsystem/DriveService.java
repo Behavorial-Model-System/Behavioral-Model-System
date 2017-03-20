@@ -1,6 +1,7 @@
 package com.bms.mqp.behaviormodelsystem;
 
 import android.app.IntentService;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
@@ -50,6 +51,7 @@ public class DriveService extends IntentService implements GoogleApiClient.Conne
     private String fileName;
     private DriveId driveID;
     boolean STATUS = true;
+    static boolean wasauth = false;
 
     public DriveService() {
         super("DriveService");
@@ -176,15 +178,21 @@ public class DriveService extends IntentService implements GoogleApiClient.Conne
                 new NotificationCompat.Builder(this)
                         .setSmallIcon(R.drawable.ic_launcher)
                         .setContentTitle("Authentication Service Status")
-                        .setContentText("Hello World!");
+                        .setContentText("Hello World!")
+                        .setPriority(Notification.PRIORITY_MAX)
+                        .setDefaults(Notification.DEFAULT_VIBRATE);
+
         NotificationManager notificationManager;
         int mNotificationId = 042;
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        if (STATUS) {
+        // only send a notification if the authentication state has changed from last time
+        if (STATUS && !wasauth) {
+            wasauth = true;
             mBuilder.setContentText("Authenticated");
             notificationManager.notify(mNotificationId, mBuilder.build());
-        } else {
+        } else if(!STATUS && wasauth){
+            wasauth = false;
             mBuilder.setContentText("Deauthenticated");
             notificationManager.notify(mNotificationId, mBuilder.build());
         }
