@@ -50,7 +50,8 @@ public class ExternalSaver {
     static ArrayList<String> filesToUpload = new ArrayList<String>();
 
     public Context context;
-    static int filesBeforeUpload = 5;
+    static int filesBeforeUpload = 1;
+    boolean upload = false;
 
     public ExternalSaver(Context context){
         this.context = context;
@@ -117,7 +118,7 @@ public class ExternalSaver {
             timeOfDayTimestamp = new Date();
         }
         Date comparisonTime = new Date();
-        if (comparisonTime.getTime() - timeOfDayTimestamp.getTime() > interval * 60 ) { //More than the maximum time frame has passed, we need a new timestamp
+        if (comparisonTime.getTime() - timeOfDayTimestamp.getTime() > interval * 60000 ) { //More than the maximum time frame has passed, we need a new timestamp
             uploadCounter++;
             // add a file to the arraylist of files to upload
             filesToUploadPath.add(path + "/savedFile " + dateFormat.format(timeOfDayTimestamp) + ".json");
@@ -126,15 +127,7 @@ public class ExternalSaver {
                 // reset the counter to 0
                 uploadCounter = 0;
                 // can copy a list like this since nor objects
-                Intent t = new Intent(context, JSONFileUploadService.class);
-                t.putExtra("FILEPATHS",filesToUploadPath);
-                t.putExtra("FILENAMES",filesToUpload);
-
-                context.startService(t);
-                filesToUpload.clear();
-                filesToUploadPath.clear();
-
-
+                upload = true;
             }
 
             timeOfDayTimestamp = comparisonTime;
@@ -193,6 +186,17 @@ public class ExternalSaver {
         writer.endArray();
 
         writer.close();
+
+        if(upload){
+            Intent t = new Intent(context, JSONFileUploadService.class);
+            t.putExtra("FILEPATHS",filesToUploadPath);
+            t.putExtra("FILENAMES",filesToUpload);
+
+            context.startService(t);
+            filesToUpload.clear();
+            filesToUploadPath.clear();
+            upload = false;
+        }
     }
 
 

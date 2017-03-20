@@ -82,7 +82,7 @@ public class JSONFileUploadService extends IntentService implements GoogleApiCli
         telephonyManager = (TelephonyManager) getSystemService(Context.
                 TELEPHONY_SERVICE);
 
-        folderName = telephonyManager.getDeviceId() +" JSON Files";
+        folderName = telephonyManager.getDeviceId() +"Data";
         filestoUploadPath = (ArrayList<String>)intent.getSerializableExtra("FILEPATHS");
         filestoUpload = (ArrayList<String>)intent.getSerializableExtra("FILENAMES");
         buildGoogleApiClient();
@@ -171,21 +171,25 @@ public class JSONFileUploadService extends IntentService implements GoogleApiCli
                         //query();
 
                     } else if (count == 1) {
-                        SharedPreferences ourSharedPreferences = getSharedPreferences(DRIVEINFO, Context.MODE_PRIVATE);
-                        String folderDriveID = ourSharedPreferences.getString(FolderID,"");
-                        if(folderDriveID.equals("")){
-                            showMessage("DriveID is either not properly being saved or retrieved");
-                        }
-                        else{
-                            showMessage("bleen " + folderDriveID);
-                            DriveId folderID = metadataBufferResult.getMetadataBuffer().get(0).getDriveId();
-                            DriveFolder baseJSON = folderID.asDriveFolder();
-                            writeFiles(baseJSON);
-
-                        }
+//                        SharedPreferences ourSharedPreferences = getSharedPreferences(DRIVEINFO, Context.MODE_PRIVATE);
+//                        String folderDriveID = ourSharedPreferences.getString(FolderID,"");
+//                        if(folderDriveID.equals("")){
+//                            showMessage("DriveID is either not properly being saved or retrieved");
+//                        }
+//                        else{
+//                            showMessage("bleen " + folderDriveID);
+//                            DriveId folderID = metadataBufferResult.getMetadataBuffer().get(0).getDriveId();
+//                            DriveFolder baseJSON = folderID.asDriveFolder();
+//                            writeFiles(baseJSON);
+//
+//                        }
                         //if 1 matching filename was found, write to that file
                         //driveID = metadataBufferResult.getMetadataBuffer().get(0).getDriveId();
                         //read();
+
+                        DriveId folderID = metadataBufferResult.getMetadataBuffer().get(0).getDriveId();
+                        DriveFolder baseJSON = folderID.asDriveFolder();
+                        writeFiles(baseJSON);
                     } else {
                         showMessage("found too many matching filenames, dont know which one to save to");
                     }
@@ -341,11 +345,11 @@ public class JSONFileUploadService extends IntentService implements GoogleApiCli
                     }
                     showMessage("Created a folder with content: " + result.getDriveFolder().getDriveId());
                     showMessage("Created a folder with resourceID: " + result.getDriveFolder().getDriveId().encodeToString());
-
-                    SharedPreferences ourSharedPreferences = getSharedPreferences(DRIVEINFO, Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor = ourSharedPreferences.edit();
-                    editor.putString(FolderID, result.getDriveFolder().getDriveId().encodeToString());
-                    editor.commit();
+//
+//                    SharedPreferences ourSharedPreferences = getSharedPreferences(DRIVEINFO, Context.MODE_PRIVATE);
+//                    SharedPreferences.Editor editor = ourSharedPreferences.edit();
+//                    editor.putString(FolderID, result.getDriveFolder().getDriveId());
+//                    editor.commit();
 
                     // need to put a for loop for writing files here
                    writeFiles(result.getDriveFolder().getDriveId().asDriveFolder());
