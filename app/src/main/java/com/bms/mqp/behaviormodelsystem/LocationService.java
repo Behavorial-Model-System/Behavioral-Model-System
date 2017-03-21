@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Message;
 import android.os.Parcelable;
@@ -16,6 +17,7 @@ import android.text.format.DateFormat;
 import android.util.Log;
 
 import com.google.android.gms.awareness.Awareness;
+import com.google.android.gms.awareness.snapshot.LocationResult;
 import com.google.android.gms.awareness.snapshot.PlacesResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -102,6 +104,33 @@ public class LocationService extends IntentService {
                     }
                 });
         //sendNotification("This works");
+//        Awareness.SnapshotApi.getLocation(mGoogleApiClient)
+//                .setResultCallback((new ResultCallback<LocationResult>() {
+//                    @Override
+//                    public void onResult(@NonNull LocationResult locationResult) {
+//                        if(!locationResult.getStatus().isSuccess()) { //Uh oh! A Problem
+//                            Log.e(TAG, "Could not get location");
+//                            return;
+//                        }
+//                        Location tempLocation = locationResult.getLocation();
+//                        Log.i(TAG, "Lat: " + tempLocation.getLatitude() + ", Lon: " + tempLocation.getLongitude());
+//                        String date = (DateFormat.format("dd-MM-yyyy hh:mm:ss", new java.util.Date()).toString());
+//
+//                        Message msg = Message.obtain();
+//                        Bundle b = new Bundle();
+//                        b.putString("Latitude:", Double.toString(tempLocation.getLatitude()));
+//                        b.putString("Longitude:", Double.toString(tempLocation.getLongitude()));
+//                        b.putString("time", date);
+//                        msg.setData(b);
+//
+//                        try {
+//                            ExternalSaver.writeMessage(msg);
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        }
+//
+//                    }
+//                }));
     }
 
     // Post a notification indicating whether a doodle was found.
