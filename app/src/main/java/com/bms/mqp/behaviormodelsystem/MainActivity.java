@@ -21,6 +21,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.telephony.TelephonyManager;
@@ -41,7 +42,6 @@ public class MainActivity extends AppCompatActivity
 
         if (settings.getBoolean("my_first_time", true)) {
 
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.READ_PHONE_STATE}, 1);
 
             new AlertDialog.Builder(this)
                     .setTitle("Open Usage Access")
@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity
                         public void onClick(DialogInterface dialog, int which) {
                             // continue with delete
                             startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
+
                         }
                     })
                     .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
@@ -58,9 +59,20 @@ public class MainActivity extends AppCompatActivity
                         }
                     })
                     .show();
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.READ_PHONE_STATE}, 1);
 
             settings.edit().putBoolean("my_first_time", false).commit();
+
+            // run authentication to force loging to google account
+
+            while(ContextCompat.checkSelfPermission(this,Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_PHONE_STATE},1);
+            }
+            Intent mIntent = new Intent(this, DriveService.class);
+            startService(mIntent);
+
         }
+
 
 
 
@@ -106,6 +118,8 @@ public class MainActivity extends AppCompatActivity
         if (auth) {
             alarm.setAlarm(this, 6);
         }
+
+
     }
 
     @Override
