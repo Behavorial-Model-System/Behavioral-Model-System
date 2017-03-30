@@ -44,14 +44,13 @@ public class ExternalSaver {
     private static final String TAG = "Writer";
     private static Date timeOfDayTimestamp;
     private static final long interval = 5; //Interval in mins
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-    private static int uploadCounter = 0;
-    private static ArrayList<String> filesToUploadPath = new ArrayList<String>();
-    private static ArrayList<String> filesToUpload = new ArrayList<String>();
-
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
+    static int uploadCounter = 0;
+    static ArrayList<String> filesToUploadPath = new ArrayList<String>();
+    static ArrayList<String> filesToUpload = new ArrayList<String>();
     public Context context;
-    private static int filesBeforeUpload = 1;
-    public boolean upload = false;
+    static int filesBeforeUpload = 1;
+    boolean upload = false;
 
     public ExternalSaver(Context context){
         this.context = context;
@@ -117,22 +116,12 @@ public class ExternalSaver {
         if (timeOfDayTimestamp == null) {
             timeOfDayTimestamp = new Date();
         }
+        //
         Date comparisonTime = new Date();
         if (comparisonTime.getTime() - timeOfDayTimestamp.getTime() > interval * 60000 ) { //More than the maximum time frame has passed, we need a new timestamp
-            String filePath = path + "/savedFile " + dateFormat.format(timeOfDayTimestamp) + ".json";
-            try {
-                OutputStream fos = new FileOutputStream(new File(filePath), true);
-                JsonWriter writer = new JsonWriter(new OutputStreamWriter(fos, "UTF-8"));
-                writer.setIndent("  ");
-                writer.endArray();
-                writer.close();
-            }
-            catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
             uploadCounter++;
             // add a file to the arraylist of files to upload
-            filesToUploadPath.add(filePath);
+            filesToUploadPath.add(path + "/savedFile " + dateFormat.format(timeOfDayTimestamp) + ".json");
             filesToUpload.add(dateFormat.format(timeOfDayTimestamp) + ".json");
             if(uploadCounter % filesBeforeUpload == 0) {
                 // reset the counter to 0
@@ -145,12 +134,11 @@ public class ExternalSaver {
         }
         File file = new File(path + "/savedFile " + dateFormat.format(timeOfDayTimestamp) + ".json");
         OutputStream fos = null;
-        boolean newFileCheck = false;
+
         Log.v(TAG,path);
         if(!file.exists()){
             file.getParentFile().mkdirs();
             file.createNewFile();
-            newFileCheck = true;
         }
 
         try {
@@ -158,13 +146,11 @@ public class ExternalSaver {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        OutputStreamWriter currentOSW = new OutputStreamWriter(fos, "UTF-8");
-        JsonWriter writer = new JsonWriter(currentOSW);
+
+        JsonWriter writer = new JsonWriter(new OutputStreamWriter(fos, "UTF-8"));
         writer.setIndent("  ");
-        if (newFileCheck) {
-            writer.beginArray();
-            newFileCheck = false;
-        }
+
+        writer.beginArray();
         writer.beginObject();
         writer.name("time").value(message.getData().getString("time"));
         // writer.name("timestamp").value(message.getData().getString("time"));
@@ -198,16 +184,9 @@ public class ExternalSaver {
             writeLocations(writer, message);
         }
         writer.endObject();
-
-        if(!upload){
-            currentOSW.write(',');
-        }
-        else{
-            currentOSW.write(']');
-        }
+        writer.endArray();
 
         writer.close();
-        currentOSW.close();
 
         if(upload){
             Intent t = new Intent(context, JSONFileUploadService.class);

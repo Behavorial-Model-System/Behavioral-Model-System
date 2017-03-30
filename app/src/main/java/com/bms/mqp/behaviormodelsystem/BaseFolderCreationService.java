@@ -80,7 +80,7 @@ public class BaseFolderCreationService extends IntentService implements GoogleAp
         telephonyManager = (TelephonyManager) getSystemService(Context.
                 TELEPHONY_SERVICE);
 
-        folderName = telephonyManager.getDeviceId() +" BMS Folder";
+        folderName = telephonyManager.getDeviceId() +" BMS-Folder";
         buildGoogleApiClient();
         googleApiClient.connect();
     }
@@ -152,7 +152,7 @@ public class BaseFolderCreationService extends IntentService implements GoogleAp
                 }
                 else {
                     int count = metadataBufferResult.getMetadataBuffer().getCount();
-                    showMessage("found " + count + " folder(s) matching the name of the save folder");
+                    showMessage("found " + count + " folder(s) matching the name of the base folder");
                     if (count == 0) {
                         //if 0 matching filenames were found, create a new folder
                         MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
