@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
@@ -47,11 +48,14 @@ public class DriveService extends IntentService implements GoogleApiClient.Conne
         GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = "walter's tag";
+    public static final String DRIVEINFO = "DriveStuff";
+    public static final String FolderID = "FolderID";
     private GoogleApiClient googleApiClient;
     private String fileName;
     private DriveId driveID;
+    private DriveFolder root;
     boolean STATUS = true;
-    static boolean wasauth = false;
+    public static boolean wasauth = false;
 
     public DriveService() {
         super("DriveService");
@@ -69,6 +73,8 @@ public class DriveService extends IntentService implements GoogleApiClient.Conne
 
         // apparently this is null sometimes????
         //fileName = intent.getStringExtra("fileName");
+        Intent mIntent = new Intent(this, BaseFolderCreationService.class);
+        startService(mIntent);
 
         TelephonyManager telephonyManager;
 
@@ -139,7 +145,24 @@ public class DriveService extends IntentService implements GoogleApiClient.Conne
                         Filters.eq(SearchableField.TRASHED, false))
         ).build();
         showMessage("The filename is " + fileName);
-        DriveFolder root = Drive.DriveApi.getRootFolder(googleApiClient);
+
+        //                    SharedPreferences ourSharedPreferences = getSharedPreferences(DRIVEINFO, Context.MODE_PRIVATE);
+//                    SharedPreferences.Editor editor = ourSharedPreferences.edit();
+//                    editor.putString(FolderID, result.getDriveFolder().getDriveId());
+//                    editor.commit();
+
+        SharedPreferences prefs = getSharedPreferences(DRIVEINFO, MODE_PRIVATE);
+        String name = prefs.getString(FolderID, null);
+
+        if(name != null){
+            DriveId folderID = DriveId.decodeFromString(name);
+            root = folderID.asDriveFolder();
+        }
+        else{
+            root = Drive.DriveApi.getRootFolder(googleApiClient);
+            return;
+        }
+
         root.queryChildren(googleApiClient, query).setResultCallback(new ResultCallback<DriveApi.MetadataBufferResult>() {
             @Override
             public void onResult(@NonNull DriveApi.MetadataBufferResult metadataBufferResult) {
@@ -155,10 +178,12 @@ public class DriveService extends IntentService implements GoogleApiClient.Conne
                         Drive.DriveApi.newDriveContents(googleApiClient).setResultCallback(driveContentsCallback);
                         showMessage("Authenticated since the file matching the name of the save file was not found");
                         STATUS = true;
+                        sendNotification();
                     } else if (count == 1) {
                         //if 1 matching filename was found, write to that file
                         driveID = metadataBufferResult.getMetadataBuffer().get(0).getDriveId();
                         read();
+
                     } else {
                         showMessage("found too many matching filenames, dont know which one to save to");
                     }
@@ -169,7 +194,7 @@ public class DriveService extends IntentService implements GoogleApiClient.Conne
             }
         });
 
-        sendNotification();
+
     }
 
     // notify authentication status
@@ -187,11 +212,11 @@ public class DriveService extends IntentService implements GoogleApiClient.Conne
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
         // only send a notification if the authentication state has changed from last time
-        if (STATUS && !wasauth) {
+        if (STATUS && wasauth == false ) {
             wasauth = true;
             mBuilder.setContentText("Authenticated");
             notificationManager.notify(mNotificationId, mBuilder.build());
-        } else if(!STATUS && wasauth){
+        } else if(!STATUS && wasauth == true){
             wasauth = false;
             mBuilder.setContentText("Deauthenticated");
             notificationManager.notify(mNotificationId, mBuilder.build());
@@ -254,9 +279,9 @@ public class DriveService extends IntentService implements GoogleApiClient.Conne
                                     .setStarred(true).build();
 
                             // create a file on root folder
-                            Drive.DriveApi.getRootFolder(googleApiClient)
-                                    .createFile(googleApiClient, changeSet, driveContents)
-                                    .setResultCallback(fileCallback);
+
+                            root.createFile(googleApiClient, changeSet, driveContents)
+                                .setResultCallback(fileCallback);
                         }
                     }.start();
                 }
@@ -294,6 +319,7 @@ public class DriveService extends IntentService implements GoogleApiClient.Conne
                     }
                     // DriveContents object contains pointers
                     // to the actual byte stream
+
                     try {
                         DriveContents contents = result.getDriveContents();
                         ParcelFileDescriptor parcelFileDescriptor = contents.getParcelFileDescriptor();
@@ -308,10 +334,13 @@ public class DriveService extends IntentService implements GoogleApiClient.Conne
 
                         if(line.toLowerCase().contains("deauthenticated")) {
                             STATUS = false;
+                            showMessage("deauthenticated this time");
+                            sendNotification();
                         }
 
                         else {
                             STATUS = true;
+                            sendNotification();
                         }
                         fileInputStream.close();
                         contents.commit(googleApiClient, null);
@@ -319,9 +348,9 @@ public class DriveService extends IntentService implements GoogleApiClient.Conne
 
                     } catch (IOException e) {
                         STATUS = true;
+                        sendNotification();
                         Log.e(TAG, "exception reading file");
                     }
-
 
                 }
             };

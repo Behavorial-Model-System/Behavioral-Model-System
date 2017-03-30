@@ -46,22 +46,19 @@ import java.util.ArrayList;
  * Created by Arun on 2/24/2017.
  */
 
-public class JSONFileUploadService extends IntentService implements GoogleApiClient.ConnectionCallbacks,
+public class BaseFolderCreationService extends IntentService implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = "walter's tag";
     public static final String DRIVEINFO = "DriveStuff";
     public static final String FolderID = "FolderID";
     private GoogleApiClient googleApiClient;
-    private ArrayList<String> filestoUploadPath;
-    private ArrayList<String> filestoUpload;
     private String folderName;
-    private DriveFolder root;
     private DriveId tempfiledriveID;
 
 
-    public JSONFileUploadService() {
-        super("JSONFileUploadService");
+    public BaseFolderCreationService() {
+        super("BaseFolderCreationService");
     }
 
 
@@ -77,16 +74,13 @@ public class JSONFileUploadService extends IntentService implements GoogleApiCli
     protected void onHandleIntent(Intent intent) {
         showMessage("JSONFileUploadService onStartCommand");
 
-        Intent mIntent = new Intent(this, BaseFolderCreationService.class);
-        startService(mIntent);
+
         TelephonyManager telephonyManager;
 
         telephonyManager = (TelephonyManager) getSystemService(Context.
                 TELEPHONY_SERVICE);
 
-        folderName = telephonyManager.getDeviceId() +"Data";
-        filestoUploadPath = (ArrayList<String>)intent.getSerializableExtra("FILEPATHS");
-        filestoUpload = (ArrayList<String>)intent.getSerializableExtra("FILENAMES");
+        folderName = telephonyManager.getDeviceId() +" BMS Folder";
         buildGoogleApiClient();
         googleApiClient.connect();
     }
@@ -147,19 +141,7 @@ public class JSONFileUploadService extends IntentService implements GoogleApiCli
                         Filters.eq(SearchableField.TITLE, folderName),
                         Filters.eq(SearchableField.TRASHED, false))
         ).build();
-
-
-        SharedPreferences prefs = getSharedPreferences(DRIVEINFO, MODE_PRIVATE);
-        String name = prefs.getString(FolderID, null);
-
-        if(name != null){
-            DriveId folderID = DriveId.decodeFromString(name);
-            root = folderID.asDriveFolder();
-        }
-        else{
-            root = Drive.DriveApi.getRootFolder(googleApiClient);
-            return;
-        }
+        DriveFolder root = Drive.DriveApi.getRootFolder(googleApiClient);
         root.queryChildren(googleApiClient, query).setResultCallback(new ResultCallback<DriveApi.MetadataBufferResult>() {
             @Override
             public void onResult(@NonNull DriveApi.MetadataBufferResult metadataBufferResult) {
@@ -179,30 +161,16 @@ public class JSONFileUploadService extends IntentService implements GoogleApiCli
                                 .setStarred(true).build();
 
                         // create a folder on root folder
-                        root.createFolder(googleApiClient, changeSet)
+                        Drive.DriveApi.getRootFolder(googleApiClient)
+                                .createFolder(googleApiClient, changeSet)
                                 .setResultCallback(folderCallback);
                         //query();
 
                     } else if (count == 1) {
-//                        SharedPreferences ourSharedPreferences = getSharedPreferences(DRIVEINFO, Context.MODE_PRIVATE);
-//                        String folderDriveID = ourSharedPreferences.getString(FolderID,"");
-//                        if(folderDriveID.equals("")){
-//                            showMessage("DriveID is either not properly being saved or retrieved");
-//                        }
-//                        else{
-//                            showMessage("bleen " + folderDriveID);
-//                            DriveId folderID = metadataBufferResult.getMetadataBuffer().get(0).getDriveId();
-//                            DriveFolder baseJSON = folderID.asDriveFolder();
-//                            writeFiles(baseJSON);
-//
-//                        }
-                        //if 1 matching filename was found, write to that file
-                        //driveID = metadataBufferResult.getMetadataBuffer().get(0).getDriveId();
-                        //read();
 
+                        showMessage(" found it");
                         DriveId folderID = metadataBufferResult.getMetadataBuffer().get(0).getDriveId();
-                        DriveFolder baseJSON = folderID.asDriveFolder();
-                        writeFiles(baseJSON);
+
                     } else {
                         showMessage("found too many matching filenames, dont know which one to save to");
                     }
@@ -235,54 +203,7 @@ public class JSONFileUploadService extends IntentService implements GoogleApiCli
         file.open(googleApiClient, DriveFile.MODE_READ_WRITE, null).setResultCallback(contentsOpenedCallback2);
     }
 
-    public void writeFiles(final DriveFolder df){
 
-
-        for(int i = 0; i <filestoUpload.size();i++){
-            final int temp = i;
-            Drive.DriveApi.newDriveContents(googleApiClient).setResultCallback( new ResultCallback<DriveApi.DriveContentsResult>() {
-                @Override
-                public void onResult(DriveApi.DriveContentsResult result) {
-                    if (!result.getStatus().isSuccess()) {
-                        showMessage("Error while trying to create new file contents");
-                        return;
-                    }
-                    final DriveContents driveContents = result.getDriveContents();
-
-
-                    new Thread() {
-                        @Override
-                        public void run() {
-                            // write content to DriveContents
-                            OutputStream outputStream = driveContents.getOutputStream();
-                            Writer writer = new OutputStreamWriter(outputStream);
-                            try {
-                                FileReader fr = new FileReader(filestoUploadPath.get(temp));
-                                int temp=fr.read();
-                                while(temp!=-1) {
-                                    writer.write(temp);
-                                    temp = fr.read();
-                                }
-                            } catch (FileNotFoundException e) {
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
-                                    .setTitle(filestoUpload.get(temp))
-                                    .setMimeType("application/json").build();
-
-
-                            // create a file on root folder
-                            df.createFile(googleApiClient, changeSet, driveContents);
-                        }
-
-                    }.start();
-                }
-            });
-        }
-
-    }
 
 
 
@@ -358,14 +279,15 @@ public class JSONFileUploadService extends IntentService implements GoogleApiCli
                     }
                     showMessage("Created a folder with content: " + result.getDriveFolder().getDriveId());
                     showMessage("Created a folder with resourceID: " + result.getDriveFolder().getDriveId().encodeToString());
-//
-//                    SharedPreferences ourSharedPreferences = getSharedPreferences(DRIVEINFO, Context.MODE_PRIVATE);
-//                    SharedPreferences.Editor editor = ourSharedPreferences.edit();
-//                    editor.putString(FolderID, result.getDriveFolder().getDriveId());
-//                    editor.commit();
 
-                    // need to put a for loop for writing files here
-                   writeFiles(result.getDriveFolder().getDriveId().asDriveFolder());
+
+                    SharedPreferences ourSharedPreferences = getSharedPreferences(DRIVEINFO, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = ourSharedPreferences.edit();
+                    editor.putString(FolderID, result.getDriveFolder().getDriveId().encodeToString());
+                    editor.commit();
+//                    editor.apply();
+
+//
                 }
             };
     /**

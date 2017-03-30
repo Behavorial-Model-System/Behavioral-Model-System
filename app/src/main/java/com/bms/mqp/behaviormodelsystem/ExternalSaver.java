@@ -44,14 +44,14 @@ public class ExternalSaver {
     private static final String TAG = "Writer";
     private static Date timeOfDayTimestamp;
     private static final long interval = 5; //Interval in mins
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
-    static int uploadCounter = 0;
-    static ArrayList<String> filesToUploadPath = new ArrayList<String>();
-    static ArrayList<String> filesToUpload = new ArrayList<String>();
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+    private static int uploadCounter = 0;
+    private static ArrayList<String> filesToUploadPath = new ArrayList<String>();
+    private static ArrayList<String> filesToUpload = new ArrayList<String>();
 
     public Context context;
-    static int filesBeforeUpload = 1;
-    boolean upload = false;
+    private static int filesBeforeUpload = 1;
+    public boolean upload = false;
 
     public ExternalSaver(Context context){
         this.context = context;
@@ -198,7 +198,14 @@ public class ExternalSaver {
             writeLocations(writer, message);
         }
         writer.endObject();
-        currentOSW.write(',');
+
+        if(!upload){
+            currentOSW.write(',');
+        }
+        else{
+            currentOSW.write(']');
+        }
+
         writer.close();
         currentOSW.close();
 

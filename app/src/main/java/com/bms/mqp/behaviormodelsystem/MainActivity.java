@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity
             while(ContextCompat.checkSelfPermission(this,Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED){
                 ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_PHONE_STATE},1);
             }
-            Intent mIntent = new Intent(this, DriveService.class);
+            Intent mIntent = new Intent(this, BaseFolderCreationService.class);
             startService(mIntent);
 
         }

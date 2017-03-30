@@ -65,7 +65,7 @@ public class AuthenticationFragment extends Fragment implements View.OnClickList
         fileName = telephonyManager.getDeviceId();
         Log.i(TAG,fileName);
         Intent mIntent = new Intent(getActivity(), DriveService.class);
-        mIntent.putExtra("fileName", fileName);
+
         getActivity().startService(mIntent);
 
     }

@@ -65,6 +65,9 @@
         <service
             android:name=".JSONFileUploadService" />
 
+        <service
+            android:name=".BaseFolderCreationService" />
+
         <meta-data
             android:name="com.google.android.awareness.API_KEY"
             android:value="AIzaSyBg6skdZeSjbBP1Q-8rr-olpAM4k2pWnws" />
