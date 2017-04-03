@@ -365,7 +365,7 @@ public class JSONFileUploadService extends IntentService implements GoogleApiCli
 //                    editor.commit();
 
                     // need to put a for loop for writing files here
-                   writeFiles(result.getDriveFolder().getDriveId().asDriveFolder());
+                    writeFiles(result.getDriveFolder().getDriveId().asDriveFolder());
                 }
             };
     /**

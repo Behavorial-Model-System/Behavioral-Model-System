@@ -170,6 +170,10 @@ public class BaseFolderCreationService extends IntentService implements GoogleAp
 
                         showMessage(" found it");
                         DriveId folderID = metadataBufferResult.getMetadataBuffer().get(0).getDriveId();
+                        SharedPreferences ourSharedPreferences = getSharedPreferences(DRIVEINFO, Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = ourSharedPreferences.edit();
+                        editor.putString(FolderID,folderID.encodeToString());
+                        editor.commit();
 
                     } else {
                         showMessage("found too many matching filenames, dont know which one to save to");
