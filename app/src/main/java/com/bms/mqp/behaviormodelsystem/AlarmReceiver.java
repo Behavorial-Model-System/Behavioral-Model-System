@@ -105,7 +105,7 @@ public class AlarmReceiver extends WakefulBroadcastReceiver {
         if (id == 2) { // app stats
             intent.putExtra("service", "app_stats");
             AppStatsalarmIntent = PendingIntent.getBroadcast(context, id, intent, 0);
-            alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, Integer.valueOf(SP.getString("app_stats_interval", "60000")), Integer.valueOf(SP.getString("app_stats_interval", "60000")), AppStatsalarmIntent);
+            alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, Integer.valueOf(SP.getString("app_stats_interval", "300000")), Integer.valueOf(SP.getString("app_stats_interval", "60000")), AppStatsalarmIntent);
         }
         if (id == 3) { // wifi
             intent.putExtra("service", "wifi");

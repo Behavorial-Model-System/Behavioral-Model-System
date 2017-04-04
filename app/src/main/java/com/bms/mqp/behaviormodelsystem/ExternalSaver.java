@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Semaphore;
 
 import static com.google.android.gms.cast.CastRemoteDisplayLocalService.startService;
 import static java.lang.System.out;
@@ -43,14 +44,17 @@ public class ExternalSaver {
     public static String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/BigMoney";
     private static final String TAG = "Writer";
     private static Date timeOfDayTimestamp;
-    private static final long interval = 5; //Interval in mins
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm");
-    static int uploadCounter = 0;
-    static ArrayList<String> filesToUploadPath = new ArrayList<String>();
-    static ArrayList<String> filesToUpload = new ArrayList<String>();
+    private static final double interval = 5; //Interval in mins
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+    private static int uploadCounter = 0;
+    private static ArrayList<String> filesToUploadPath = new ArrayList<String>();
+    private static ArrayList<String> filesToUpload = new ArrayList<String>();
     public Context context;
-    static int filesBeforeUpload = 1;
+    private static int filesBeforeUpload = 1;
     boolean upload = false;
+    private static  JsonWriter writer;
+    private static OutputStream fos = null;
+    private static Semaphore sem = new Semaphore(1);
 
     public ExternalSaver(Context context){
         this.context = context;
@@ -113,90 +117,110 @@ public class ExternalSaver {
     public  void writeMessage(Message message) throws IOException {
 
 
-        if (timeOfDayTimestamp == null) {
-            timeOfDayTimestamp = new Date();
-        }
-        //
-        Date comparisonTime = new Date();
-        if (comparisonTime.getTime() - timeOfDayTimestamp.getTime() > interval * 60000 ) { //More than the maximum time frame has passed, we need a new timestamp
-            uploadCounter++;
-            // add a file to the arraylist of files to upload
-            filesToUploadPath.add(path + "/savedFile " + dateFormat.format(timeOfDayTimestamp) + ".json");
-            filesToUpload.add(dateFormat.format(timeOfDayTimestamp) + ".json");
-            if(uploadCounter % filesBeforeUpload == 0) {
-                // reset the counter to 0
-                uploadCounter = 0;
-                // can copy a list like this since nor objects
-                upload = true;
+        try {
+            sem.acquire();
+            if (timeOfDayTimestamp == null) {
+                timeOfDayTimestamp = new Date();
+            }
+            //
+            Date comparisonTime = new Date();
+            if (comparisonTime.getTime() - timeOfDayTimestamp.getTime() > interval * 60000) { //More than the maximum time frame has passed, we need a new timestamp
+
+
+                // finish up the last JSONfile
+                try {
+                    writer.endArray();
+                    writer.close();
+                } catch (IllegalStateException e) {
+
+                }
+
+
+                uploadCounter++;
+                // add a file to the arraylist of files to upload
+                filesToUploadPath.add(path + "/savedFile " + dateFormat.format(timeOfDayTimestamp) + ".json");
+                filesToUpload.add(dateFormat.format(timeOfDayTimestamp) + ".json");
+                if (uploadCounter % filesBeforeUpload == 0) {
+                    // reset the counter to 0
+                    uploadCounter = 0;
+                    // can copy a list like this since nor objects
+                    upload = true;
+                }
+
+                timeOfDayTimestamp = comparisonTime;
+            }
+            File file = new File(path + "/savedFile " + dateFormat.format(timeOfDayTimestamp) + ".json");
+            boolean newFile = false;
+
+
+            if (!file.exists()) {
+                file.getParentFile().mkdirs();
+                file.createNewFile();
+                newFile = true;
             }
 
-            timeOfDayTimestamp = comparisonTime;
-        }
-        File file = new File(path + "/savedFile " + dateFormat.format(timeOfDayTimestamp) + ".json");
-        OutputStream fos = null;
+            if (newFile) {
+                try {
+                    fos = new FileOutputStream(file, true);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                writer = new JsonWriter(new OutputStreamWriter(fos, "UTF-8"));
+                writer.setIndent("  ");
+                writer.beginArray();
+            }
 
-        Log.v(TAG,path);
-        if(!file.exists()){
-            file.getParentFile().mkdirs();
-            file.createNewFile();
-        }
 
-        try {
-            fos = new FileOutputStream(file, true);
-        } catch (FileNotFoundException e) {
+            writer.beginObject();
+            writer.name("time").value(message.getData().getString("time"));
+            // writer.name("timestamp").value(message.getData().getString("time"));
+            if (message.getData().getDoubleArray("tilt") != null) {
+                Log.v(TAG, "tilt write");
+                writer.name("tilt");
+                writeTiltArray(writer, message.getData().getDoubleArray("tilt"));
+            }
+
+            if (message.getData().getParcelableArrayList("usageEvents") != null) {
+                Log.v(TAG, "usageEvents write");
+                writer.name("usageEvents");
+                writeUsageEvents(writer, message);
+            }
+
+            if (message.getData().getParcelableArrayList("usageStats") != null) {
+                Log.v(TAG, "usageStats write");
+                writer.name("usageStats");
+                writeUsageStats(writer, message);
+            }
+
+            if (message.getData().getParcelableArrayList("wifi") != null) {
+                Log.v(TAG, "wifi write");
+                writer.name("wifi");
+                writeWifiList(writer, message);
+            }
+
+            if (message.getData().getParcelableArrayList("location") != null) {
+                Log.v(TAG, "location write");
+                writer.name("location");
+                writeLocations(writer, message);
+            }
+            writer.endObject();
+
+
+            if (upload) {
+                Intent t = new Intent(context, JSONFileUploadService.class);
+                t.putExtra("FILEPATHS", filesToUploadPath);
+                t.putExtra("FILENAMES", filesToUpload);
+
+                context.startService(t);
+                filesToUpload.clear();
+                filesToUploadPath.clear();
+                upload = false;
+            }
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        JsonWriter writer = new JsonWriter(new OutputStreamWriter(fos, "UTF-8"));
-        writer.setIndent("  ");
-
-        writer.beginArray();
-        writer.beginObject();
-        writer.name("time").value(message.getData().getString("time"));
-        // writer.name("timestamp").value(message.getData().getString("time"));
-        if (message.getData().getDoubleArray("tilt") != null) {
-            Log.v(TAG, "tilt write");
-            writer.name("tilt");
-            writeTiltArray(writer, message.getData().getDoubleArray("tilt"));
-        }
-
-        if (message.getData().getParcelableArrayList("usageEvents") != null) {
-            Log.v(TAG, "usageEvents write");
-            writer.name("usageEvents");
-            writeUsageEvents(writer, message);
-        }
-
-        if (message.getData().getParcelableArrayList("usageStats") != null) {
-            Log.v(TAG, "usageStats write");
-            writer.name("usageStats");
-            writeUsageStats(writer, message);
-        }
-
-        if (message.getData().getParcelableArrayList("wifi") != null) {
-            Log.v(TAG, "wifi write");
-            writer.name("wifi");
-            writeWifiList(writer, message);
-        }
-
-        if (message.getData().getParcelableArrayList("location") != null) {
-            Log.v(TAG, "location write");
-            writer.name("location");
-            writeLocations(writer, message);
-        }
-        writer.endObject();
-        writer.endArray();
-
-        writer.close();
-
-        if(upload){
-            Intent t = new Intent(context, JSONFileUploadService.class);
-            t.putExtra("FILEPATHS",filesToUploadPath);
-            t.putExtra("FILENAMES",filesToUpload);
-
-            context.startService(t);
-            filesToUpload.clear();
-            filesToUploadPath.clear();
-            upload = false;
+        finally {
+            sem.release();
         }
     }
 

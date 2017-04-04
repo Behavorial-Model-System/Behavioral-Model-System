@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
@@ -31,16 +32,21 @@ import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.drive.query.SearchableField;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.logging.Handler;
 
 /**
  * Created by Arun on 2/24/2017.
@@ -235,6 +241,38 @@ public class JSONFileUploadService extends IntentService implements GoogleApiCli
         file.open(googleApiClient, DriveFile.MODE_READ_WRITE, null).setResultCallback(contentsOpenedCallback2);
     }
 
+    // convert InputStream to String
+    private static String getStringFromInputStream(InputStream is) {
+
+        BufferedReader br = null;
+        StringBuilder sb = new StringBuilder();
+
+        String line;
+        try {
+
+            br = new BufferedReader(new InputStreamReader(is));
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+                Log.e("test reading",line);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return sb.toString();
+
+    }
+
+
     public void writeFiles(final DriveFolder df){
 
 
@@ -250,6 +288,9 @@ public class JSONFileUploadService extends IntentService implements GoogleApiCli
                     final DriveContents driveContents = result.getDriveContents();
 
 
+
+
+
                     new Thread() {
                         @Override
                         public void run() {
@@ -257,12 +298,18 @@ public class JSONFileUploadService extends IntentService implements GoogleApiCli
                             OutputStream outputStream = driveContents.getOutputStream();
                             Writer writer = new OutputStreamWriter(outputStream);
                             try {
-                                FileReader fr = new FileReader(filestoUploadPath.get(temp));
-                                int temp=fr.read();
-                                while(temp!=-1) {
-                                    writer.write(temp);
-                                    temp = fr.read();
+                                //FileReader fr = new FileReader(filestoUploadPath.get(temp));
+                               // File fileDir = new File(filestoUploadPath.get(temp));
+                                BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(filestoUploadPath.get(temp)), StandardCharsets.UTF_8));
+                                String s;
+                                while ((s = br.readLine()) != null) {
+                                   // Log.e("de",s);
+                                    writer.write(s+ "\n");
+                                    // do something with the resulting line
                                 }
+
+                                writer.close();
+
                             } catch (FileNotFoundException e) {
                                 e.printStackTrace();
                             } catch (IOException e) {
@@ -273,7 +320,9 @@ public class JSONFileUploadService extends IntentService implements GoogleApiCli
                                     .setMimeType("application/json").build();
 
 
-                            // create a file on root folder
+
+                            String line;
+                            // create a file on JSON folder
                             df.createFile(googleApiClient, changeSet, driveContents);
                         }
 

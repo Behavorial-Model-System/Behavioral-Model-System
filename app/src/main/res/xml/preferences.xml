@@ -46,7 +46,7 @@
             android:key="app_stats_interval"
             android:title="App Stats"
             android:inputType="number"
-            android:defaultValue="60000" />
+            android:defaultValue="300000" />
         <EditTextPreference
             android:key="wifi_interval"
             android:title="Wifi"
