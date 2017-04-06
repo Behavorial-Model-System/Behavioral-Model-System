@@ -10,9 +10,9 @@ import android.os.Parcelable;
 public class WifiResults implements Parcelable, Comparable<WifiResults>{
     private String SSID = "";
     private String BSSID = "";
-    private String level = "";
+    private int level = 0;
 
-    public WifiResults(String SSID, String BSSID, String level){
+    public WifiResults(String SSID, String BSSID, int level){
         this.SSID = SSID;
         this.BSSID = BSSID;
         this.level= level;
@@ -25,11 +25,11 @@ public class WifiResults implements Parcelable, Comparable<WifiResults>{
     protected WifiResults(Parcel in) {
         SSID = in.readString();
         BSSID = in.readString();
-        level = in.readString();
+        level = in.readInt();
     }
 
     public int compareTo(WifiResults anotherResult) {
-        return Integer.parseInt(level) - Integer.parseInt(anotherResult.getLevel());
+        return level - anotherResult.getLevel();
     }
 
     public static final Creator<WifiResults> CREATOR = new Creator<WifiResults>() {
@@ -60,11 +60,11 @@ public class WifiResults implements Parcelable, Comparable<WifiResults>{
         this.BSSID = BSSID;
     }
 
-    public String getLevel() {
+    public int getLevel() {
         return level;
     }
 
-    public void setLevel(String level) {
+    public void setLevel(int level) {
         this.level = level;
     }
 
@@ -77,7 +77,7 @@ public class WifiResults implements Parcelable, Comparable<WifiResults>{
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(SSID);
         dest.writeString(BSSID);
-        dest.writeString(level);
+        dest.writeInt(level);
     }
 
 }
