@@ -72,7 +72,7 @@ public class AppUsageEventsService extends IntentService {
 
     //
     public UsageEvents getUsageStatistics() {
-        // Get the app statistics since one year ago from the current time.
+        // Get the app statistics since last polling
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.YEAR, -1);
 
@@ -93,17 +93,18 @@ public class AppUsageEventsService extends IntentService {
             event = new UsageEvents.Event();
             usageEventsList.getNextEvent(event);
             customUsageEvents.usageEvent = event;
-            try {
-                Drawable appIcon = this.getPackageManager()
-                        .getApplicationIcon(customUsageEvents.usageEvent.getPackageName());
-                customUsageEvents.appIcon = appIcon;
-            } catch (PackageManager.NameNotFoundException e) {
-                Log.w(TAG, String.format("App Icon is not found for %s",
-                        customUsageEvents.usageEvent.getPackageName()));
-                customUsageEvents.appIcon = this
-                        .getDrawable(R.drawable.ic_default_app_launcher);
-            }
+//            try {
+//                Drawable appIcon = this.getPackageManager()
+//                        .getApplicationIcon(customUsageEvents.usageEvent.getPackageName());
+//                customUsageEvents.appIcon = appIcon;
+//            } catch (PackageManager.NameNotFoundException e) {
+//                Log.w(TAG, String.format("App Icon is not found for %s",
+//                        customUsageEvents.usageEvent.getPackageName()));
+//                customUsageEvents.appIcon = this
+//                        .getDrawable(R.drawable.ic_default_app_launcher);
+//            }
             customUsageEventsList.add(customUsageEvents);
+            //Log.e("usageevent",customUsageEvents.usageEvent.getPackageName());
             // ExternalSaver.save("App: "+event.getPackageName()+" Time Stamp: "+event.getTimeStamp(),"UsageEvents.txt\n");
         }
 

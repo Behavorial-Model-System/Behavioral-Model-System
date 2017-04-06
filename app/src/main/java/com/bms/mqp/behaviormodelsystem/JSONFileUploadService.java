@@ -83,8 +83,7 @@ public class JSONFileUploadService extends IntentService implements GoogleApiCli
     protected void onHandleIntent(Intent intent) {
         showMessage("JSONFileUploadService onStartCommand");
 
-        Intent mIntent = new Intent(this, BaseFolderCreationService.class);
-        startService(mIntent);
+
         TelephonyManager telephonyManager;
 
         telephonyManager = (TelephonyManager) getSystemService(Context.

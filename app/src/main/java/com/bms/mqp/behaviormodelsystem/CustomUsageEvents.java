@@ -26,12 +26,12 @@ import android.os.Parcelable;
  */
 public class CustomUsageEvents implements Parcelable {
     public UsageEvents.Event usageEvent;
-    public Drawable appIcon;
+    //public Drawable appIcon;
 
 
     protected CustomUsageEvents(Parcel in) {
         usageEvent = (UsageEvents.Event) in.readValue(UsageEvents.Event.class.getClassLoader());
-        appIcon = (Drawable) in.readValue(Drawable.class.getClassLoader());
+        //appIcon = (Drawable) in.readValue(Drawable.class.getClassLoader());
     }
 
     public CustomUsageEvents() {
@@ -46,7 +46,7 @@ public class CustomUsageEvents implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeValue(usageEvent);
-        dest.writeValue(appIcon);
+       // dest.writeValue(appIcon);
     }
 
     @SuppressWarnings("unused")
