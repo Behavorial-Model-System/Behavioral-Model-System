@@ -198,7 +198,7 @@ public class ExternalSaver {
                 writeWifiList(writer, message);
             }
 
-            if (message.getData().getParcelableArrayList("location") != null) {
+            if (message.getData().getString("Latitude") != null) {
                 Log.v(TAG, "location write");
                 writer.name("location");
                 writeLocations(writer, message);
@@ -227,12 +227,17 @@ public class ExternalSaver {
 
 
     public  void writeLocations(JsonWriter writer, Message m) throws IOException {
-        List<PossiblePlace> placeLikelihoodList = m.getData().getParcelableArrayList("location");
-        writer.beginArray();
-        for (PossiblePlace p : placeLikelihoodList) {
-            writeLocation(writer, p);
-        }
-        writer.endArray();
+//        List<PossiblePlace> placeLikelihoodList = m.getData().getParcelableArrayList("location");
+//        writer.beginArray();
+//        for (PossiblePlace p : placeLikelihoodList) {
+//            writeLocation(writer, p);
+//        }
+//        writer.endArray();
+        writer.beginObject();
+        writer.name("latitude").value(Double.parseDouble(m.getData().getString("Latitude")));
+        writer.name("longitude").value(Double.parseDouble(m.getData().getString("Longitude")));
+        writer.endObject();
+
     }
 
     public  void writeLocation(JsonWriter writer, PossiblePlace result) throws IOException {

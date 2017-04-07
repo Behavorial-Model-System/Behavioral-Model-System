@@ -21,7 +21,7 @@
         <CheckBoxPreference
             android:key="location_list"
             android:title="Location"
-            android:summary="Tracks Possible Locations"
+            android:summary="Tracks Current GPS Coordinates"
             android:defaultValue="true" />
         <CheckBoxPreference
             android:key="phone_tilt"
@@ -31,7 +31,7 @@
         <CheckBoxPreference
             android:key="auth"
             android:title="Authentication"
-            android:summary="The authentication/Deauthentication service"
+            android:summary="The Authentication/Deauthentication service"
             android:defaultValue="true" />
     </PreferenceCategory>
     <PreferenceCategory

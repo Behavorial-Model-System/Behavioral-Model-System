@@ -63,34 +63,65 @@ public class LocationService extends IntentService {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        Awareness.SnapshotApi.getPlaces(mGoogleApiClient)
-                .setResultCallback(new ResultCallback<PlacesResult>() {
+//        Awareness.SnapshotApi.getPlaces(mGoogleApiClient)
+//                .setResultCallback(new ResultCallback<PlacesResult>() {
+//                    @Override
+//                    public void onResult(@NonNull PlacesResult placesResult) {
+//                        if (!placesResult.getStatus().isSuccess()) {
+//                            Log.e(TAG, "Could not get places.");
+//                            return;
+//                        }
+//                        List<PlaceLikelihood> placeLikelihoodList = placesResult.getPlaceLikelihoods();
+//                        // Show the top 5 possible location results.
+//
+//                        ArrayList<PossiblePlace> possiblePlaces = new ArrayList<>();
+//
+//                        for (int i = 0; i < 5; i++) {
+//                            PlaceLikelihood p = placeLikelihoodList.get(i);
+//                            PossiblePlace place = new PossiblePlace(p.getPlace().getName().toString(), p.getLikelihood());
+//                            possiblePlaces.add(place);
+//                            // ExternalSaver.save(p.getPlace().getName().toString() + ", likelihood: " + p.getLikelihood(), "Location.txt\n");
+//                        }
+//
+//                        String date = (DateFormat.format("dd-MM-yyyy hh:mm:ss", new java.util.Date()).toString());
+//
+//                        Message msg = Message.obtain();
+//                        Bundle b = new Bundle();
+//                        b.putParcelableArrayList("location", (ArrayList<? extends Parcelable>) possiblePlaces);
+//                        b.putString("time", date);
+//                        msg.setData(b);
+//
+//
+//                        try {
+//                            Log.i("tkeekjkefj","Trying to launch JSON saving");
+//                            ExternalSaver ex = new ExternalSaver(getApplication());
+//                            ex.writeMessage(msg);
+//                        } catch (IOException e) {
+//                            Log.d("myapp", Log.getStackTraceString(e));
+//
+//                        }
+//
+//                    }
+//                });
+        //sendNotification("This works");
+        Awareness.SnapshotApi.getLocation(mGoogleApiClient)
+                .setResultCallback((new ResultCallback<LocationResult>() {
                     @Override
-                    public void onResult(@NonNull PlacesResult placesResult) {
-                        if (!placesResult.getStatus().isSuccess()) {
-                            Log.e(TAG, "Could not get places.");
+                    public void onResult(@NonNull LocationResult locationResult) {
+                        if(!locationResult.getStatus().isSuccess()) { //Uh oh! A Problem
+                            Log.e(TAG, "Could not get location");
                             return;
                         }
-                        List<PlaceLikelihood> placeLikelihoodList = placesResult.getPlaceLikelihoods();
-                        // Show the top 5 possible location results.
-
-                        ArrayList<PossiblePlace> possiblePlaces = new ArrayList<>();
-
-                        for (int i = 0; i < 5; i++) {
-                            PlaceLikelihood p = placeLikelihoodList.get(i);
-                            PossiblePlace place = new PossiblePlace(p.getPlace().getName().toString(), p.getLikelihood());
-                            possiblePlaces.add(place);
-                            // ExternalSaver.save(p.getPlace().getName().toString() + ", likelihood: " + p.getLikelihood(), "Location.txt\n");
-                        }
-
+                        Location tempLocation = locationResult.getLocation();
+                        Log.i(TAG, "Lat: " + tempLocation.getLatitude() + ", Lon: " + tempLocation.getLongitude());
                         String date = (DateFormat.format("dd-MM-yyyy hh:mm:ss", new java.util.Date()).toString());
 
                         Message msg = Message.obtain();
                         Bundle b = new Bundle();
-                        b.putParcelableArrayList("location", (ArrayList<? extends Parcelable>) possiblePlaces);
+                        b.putString("Latitude", Double.toString(tempLocation.getLatitude()));
+                        b.putString("Longitude", Double.toString(tempLocation.getLongitude()));
                         b.putString("time", date);
                         msg.setData(b);
-
 
                         try {
                             Log.i("tkeekjkefj","Trying to launch JSON saving");
@@ -102,35 +133,7 @@ public class LocationService extends IntentService {
                         }
 
                     }
-                });
-        //sendNotification("This works");
-//        Awareness.SnapshotApi.getLocation(mGoogleApiClient)
-//                .setResultCallback((new ResultCallback<LocationResult>() {
-//                    @Override
-//                    public void onResult(@NonNull LocationResult locationResult) {
-//                        if(!locationResult.getStatus().isSuccess()) { //Uh oh! A Problem
-//                            Log.e(TAG, "Could not get location");
-//                            return;
-//                        }
-//                        Location tempLocation = locationResult.getLocation();
-//                        Log.i(TAG, "Lat: " + tempLocation.getLatitude() + ", Lon: " + tempLocation.getLongitude());
-//                        String date = (DateFormat.format("dd-MM-yyyy hh:mm:ss", new java.util.Date()).toString());
-//
-//                        Message msg = Message.obtain();
-//                        Bundle b = new Bundle();
-//                        b.putString("Latitude:", Double.toString(tempLocation.getLatitude()));
-//                        b.putString("Longitude:", Double.toString(tempLocation.getLongitude()));
-//                        b.putString("time", date);
-//                        msg.setData(b);
-//
-//                        try {
-//                            ExternalSaver.writeMessage(msg);
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                        }
-//
-//                    }
-//                }));
+                }));
     }
 
     // Post a notification indicating whether a doodle was found.
