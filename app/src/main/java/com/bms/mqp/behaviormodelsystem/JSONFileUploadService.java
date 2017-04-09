@@ -62,6 +62,7 @@ public class JSONFileUploadService extends IntentService implements GoogleApiCli
     private ArrayList<String> filestoUploadPath;
     private ArrayList<String> filestoUpload;
     private String folderName;
+    private SharedPreferences prefs;
     private DriveFolder root;
     private DriveId tempfiledriveID;
 
@@ -92,6 +93,18 @@ public class JSONFileUploadService extends IntentService implements GoogleApiCli
         folderName = telephonyManager.getDeviceId() +"Data";
         filestoUploadPath = (ArrayList<String>)intent.getSerializableExtra("FILEPATHS");
         filestoUpload = (ArrayList<String>)intent.getSerializableExtra("FILENAMES");
+
+
+        prefs = getSharedPreferences(DRIVEINFO, MODE_PRIVATE);
+        String name = prefs.getString(FolderID, null);
+
+        if(name == null){
+            Intent mIntent = new Intent(this, BaseFolderCreationService.class);
+            startService(mIntent);
+            // wait 30 seconds to make sure the folder has been created
+            SystemClock.sleep(30000);
+        }
+
         buildGoogleApiClient();
         googleApiClient.connect();
     }
@@ -154,7 +167,7 @@ public class JSONFileUploadService extends IntentService implements GoogleApiCli
         ).build();
 
 
-        SharedPreferences prefs = getSharedPreferences(DRIVEINFO, MODE_PRIVATE);
+        prefs = getSharedPreferences(DRIVEINFO, MODE_PRIVATE);
         String name = prefs.getString(FolderID, null);
 
         if(name != null){
@@ -162,7 +175,9 @@ public class JSONFileUploadService extends IntentService implements GoogleApiCli
             root = folderID.asDriveFolder();
         }
         else{
-            root = Drive.DriveApi.getRootFolder(googleApiClient);
+            // something is wrong and the folder name is still null
+            //  root = Drive.DriveApi.getRootFolder(googleApiClient);
+            Log.i("Upload Service","something went wrong with getting the base saving folder");
             return;
         }
         root.queryChildren(googleApiClient, query).setResultCallback(new ResultCallback<DriveApi.MetadataBufferResult>() {

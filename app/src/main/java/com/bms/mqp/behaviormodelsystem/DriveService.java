@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
@@ -54,6 +55,7 @@ public class DriveService extends IntentService implements GoogleApiClient.Conne
     private String fileName;
     private DriveId driveID;
     private DriveFolder root;
+    private SharedPreferences prefs;
     boolean STATUS = true;
     public static boolean wasauth = false;
 
@@ -73,8 +75,8 @@ public class DriveService extends IntentService implements GoogleApiClient.Conne
 
         // apparently this is null sometimes????
         //fileName = intent.getStringExtra("fileName");
-        Intent mIntent = new Intent(this, BaseFolderCreationService.class);
-        startService(mIntent);
+
+
 
         TelephonyManager telephonyManager;
 
@@ -82,6 +84,18 @@ public class DriveService extends IntentService implements GoogleApiClient.Conne
                 TELEPHONY_SERVICE);
 
         fileName = telephonyManager.getDeviceId();
+
+
+
+        prefs = getSharedPreferences(DRIVEINFO, MODE_PRIVATE);
+        String name = prefs.getString(FolderID, null);
+
+        if(name == null){
+            Intent mIntent = new Intent(this, BaseFolderCreationService.class);
+            startService(mIntent);
+            // wait 30 seconds to make sure the folder has been created
+            SystemClock.sleep(30000);
+        }
 
 
         buildGoogleApiClient();
@@ -151,7 +165,7 @@ public class DriveService extends IntentService implements GoogleApiClient.Conne
 //                    editor.putString(FolderID, result.getDriveFolder().getDriveId());
 //                    editor.commit();
 
-        SharedPreferences prefs = getSharedPreferences(DRIVEINFO, MODE_PRIVATE);
+
         String name = prefs.getString(FolderID, null);
 
         if(name != null){
@@ -159,7 +173,9 @@ public class DriveService extends IntentService implements GoogleApiClient.Conne
             root = folderID.asDriveFolder();
         }
         else{
-            root = Drive.DriveApi.getRootFolder(googleApiClient);
+            // something is wrong and the folder name is still null
+          //  root = Drive.DriveApi.getRootFolder(googleApiClient);
+            Log.i("Drive Service","something went wrong with getting the base saving folder");
             return;
         }
 

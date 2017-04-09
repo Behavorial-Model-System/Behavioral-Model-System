@@ -59,36 +59,8 @@ public class ExternalSaver {
     public ExternalSaver(Context context){
         this.context = context;
     }
-    /** appends text to a textfile, creates the textfile if it doesnt exist
-     *
-     * @param text string to write to file
-     * @param fileName name of textfile to create or append to
-     */
-    public static void save(String text, String fileName) {
-        //check the directory has been created
-        File dir = new File(path);
-        if(!dir.exists()){
-            boolean success = dir.mkdir();
-            if(! success){
-                Log.e("walter's tag", "In Saver.java, setup() failed to create directory");
-                return;
-            }
-        }
 
-        //save the text file in the directory
-        File file = new File(path + "/" + fileName);
-        Save(file, text);
-    }
 
-    /** appends text to a default text file, called savedFile.txt
-     *
-     * @param text string to write to file
-     */
-    public static void save(String text) {
-        File file = new File(path + "/savedFile.txt");
-
-        Save(file, text);
-    }
 
     //helper for saving
     private static void Save(File file, String data) {
@@ -159,7 +131,7 @@ public class ExternalSaver {
                 newFile = true;
             }
 
-            if (newFile) {
+            if (newFile || writer == null) {
                 try {
                     fos = new FileOutputStream(file, true);
                 } catch (FileNotFoundException e) {
@@ -169,8 +141,7 @@ public class ExternalSaver {
                 writer.setIndent("  ");
                 writer.beginArray();
             }
-
-
+            
             writer.beginObject();
             writer.name("time").value(message.getData().getString("time"));
             // writer.name("timestamp").value(message.getData().getString("time"));
